@@ -121,7 +121,8 @@ etc..
 
 ```bash
 git clone https://github.com/Shahadkonnekkatt/RAG_AI_Based_Law_Helper.git
-cd legalease
+cd RAG_AI_Based_Law_Helper
+cd src
 ```
 
 <br><br><br>
