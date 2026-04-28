@@ -139,7 +139,7 @@ ollama pull llama3:8b
 > This downloads ~4.7 GB. Only needed once.
 
 ### Step 4 — Build the Knowledge Base
-First you need to create a new folder named "data" and make sure to put all the needed legal acts pdf's in it like:
+Create a data directory and store the required legal Act PDFs within it. Ensure the files are preprocessed to include only section-wise content (e.g., “Section X: …”), removing non-essential elements like headers, footers, and supplementary material.
 ```
 data/
 ├── BNS.pdf
