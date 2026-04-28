@@ -370,7 +370,13 @@ PDF            PDF.js (CDN, client-side)
 
 ## ⚠️ Legal Disclaimer
 
-LegalEase is an educational and informational tool. It is **not a substitute for professional legal advice**. The AI-generated responses are grounded in statute text but may be incomplete or inaccurate. Always consult a qualified legal professional before taking any legal action.
+“LegalEase” is used in this project purely as a placeholder name for a college assignment. We do not claim any ownership, trademark, or rights to this name. If any existing company, product, or service uses the same or a similar name, it is purely coincidental.
+
+This project is intended for academic and demonstration purposes only and runs locally without any external deployment or commercial use. It does not intend to represent, compete with, or impact any real-world entity.
+
+Anyone cloning or using this repository is free to rename the project as they wish for their own use.
+
+Now this is an educational and informational tool. It is **not a substitute for professional legal advice**. The AI-generated responses are grounded in statute text but may be incomplete or inaccurate. Always consult a qualified legal professional before taking any legal action.
 
 ---
 
