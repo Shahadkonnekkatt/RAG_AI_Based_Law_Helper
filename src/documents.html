@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalEase — Legal Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#1a2a44; --navy2:#223558; --gold:#e6a817; --gold2:#c48c10;
+  --bg:#f0f2f7; --card:#fff; --border:#dde2ec;
+  --text:#1a2236; --muted:#6b7a99;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--navy),var(--navy2));height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;box-shadow:0 4px 20px rgba(0,0,0,0.16);}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-icon{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:20px;height:20px;fill:var(--navy);}
+.logo-text{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;color:white;}
+.logo-text span{color:var(--gold);}
+.header-links{display:flex;gap:8px;}
+.header-link{color:rgba(255,255,255,0.75);text-decoration:none;font-size:13px;padding:7px 14px;border-radius:7px;transition:all .2s;background:rgba(255,255,255,0.07);}
+.header-link:hover{background:rgba(255,255,255,0.14);color:white;}
+.header-link.gold{color:var(--gold);}
+
+/* PAGE */
+.page{max-width:960px;margin:0 auto;padding:52px 24px 80px;}
+
+.page-hero{text-align:center;margin-bottom:52px;}
+.page-eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(26,42,68,0.07);border:1px solid rgba(26,42,68,0.12);border-radius:9999px;padding:5px 14px;font-size:11.5px;font-weight:600;color:var(--navy);letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px;}
+.page-title{font-family:'Playfair Display',serif;font-size:clamp(26px,4vw,38px);color:var(--navy);font-weight:800;margin-bottom:10px;}
+.page-sub{font-size:15px;color:var(--muted);max-width:480px;margin:0 auto;line-height:1.7;}
+
+/* TOOLS GRID */
+.tools-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+@media(max-width:640px){
+  .tools-grid{grid-template-columns:1fr;gap:14px;}
+  .page{padding:28px 14px 60px;}
+  .page-hero{margin-bottom:28px;}
+  .page-title{font-size:clamp(20px,6vw,28px);}
+  .page-sub{font-size:13.5px;}
+  .tool-card{padding:20px 16px;}
+  .tool-icon{width:44px;height:44px;font-size:20px;}
+  .tool-label{font-size:17px;}
+  .tool-desc{font-size:12.5px;}
+  .header{padding:0 14px;}
+  .logo-text{font-size:18px;}
+
+  /* Tool modals — full screen on mobile */
+  #taggerModal > div,
+  #predictorModal > div{
+    max-width:100%;max-height:100vh;border-radius:0;
+  }
+}
+@media(max-width:400px){
+  .tools-grid{grid-template-columns:1fr;}
+}
+
+.tool-card{
+  background:var(--card);border:2px solid var(--border);
+  border-radius:18px;padding:30px 26px;
+  cursor:pointer;transition:all .25s;
+  text-decoration:none;display:flex;flex-direction:column;gap:16px;
+  position:relative;overflow:hidden;
+}
+.tool-card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  opacity:0;transition:opacity .25s;
+}
+.tool-card.blue::before{background:linear-gradient(90deg,#3b82f6,#1d4ed8);}
+.tool-card.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.tool-card.green::before{background:linear-gradient(90deg,#22c55e,#16a34a);}
+.tool-card.purple::before{background:linear-gradient(90deg,#a855f7,#7c3aed);}
+
+.tool-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.1);}
+.tool-card.blue:hover{border-color:#93c5fd;}
+.tool-card.gold:hover{border-color:var(--gold);}
+.tool-card.green:hover{border-color:#86efac;}
+.tool-card.purple:hover{border-color:#d8b4fe;}
+.tool-card:hover::before{opacity:1;}
+
+.tool-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.tool-card.blue .tool-icon{background:rgba(59,130,246,0.1);}
+.tool-card.gold .tool-icon{background:rgba(230,168,23,0.1);}
+.tool-card.green .tool-icon{background:rgba(34,197,94,0.1);}
+.tool-card.purple .tool-icon{background:rgba(168,85,247,0.1);}
+
+.tool-label{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy);}
+.tool-desc{font-size:13.5px;color:var(--muted);line-height:1.65;flex:1;}
+.tool-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:.5px;align-self:flex-start;
+}
+.tool-card.blue .tool-badge{background:rgba(59,130,246,0.1);color:#2563eb;}
+.tool-card.gold .tool-badge{background:rgba(230,168,23,0.1);color:var(--gold2);}
+.tool-card.green .tool-badge{background:rgba(34,197,94,0.1);color:#16a34a;}
+.tool-card.purple .tool-badge{background:rgba(168,85,247,0.1);color:#7c3aed;}
+
+.tool-arrow{
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:600;color:var(--muted);
+  margin-top:4px;transition:gap .2s;
+}
+.tool-card:hover .tool-arrow{gap:10px;color:var(--navy);}
+
+/* LOGIN GATE */
+.overlay{position:fixed;inset:0;z-index:1000;background:rgba(10,15,28,0.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay.hidden{display:none;}
+.auth-card{background:white;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(0,0,0,0.35);overflow:hidden;}
+.auth-header{background:linear-gradient(135deg,var(--navy),var(--navy2));padding:26px 26px 20px;text-align:center;}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.auth-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.auth-logo-icon svg{width:21px;height:21px;fill:var(--navy);}
+.auth-logo-text{font-family:'Playfair Display',serif;font-size:21px;font-weight:800;color:white;}
+.auth-logo-text span{color:var(--gold);}
+.auth-tagline{font-size:12px;color:rgba(255,255,255,0.55);}
+.auth-body{padding:22px 24px 26px;}
+.field-row{margin-bottom:14px;}
+.field-row label{display:block;font-size:11.5px;font-weight:600;color:var(--navy);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.field-row input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;color:var(--text);font-family:'Inter',sans-serif;background:#f9fafb;outline:none;transition:border-color .2s;}
+.field-row input:focus{border-color:var(--navy);background:white;}
+.err{font-size:11.5px;color:#c0392b;margin-top:4px;display:none;}
+.err.show{display:block;}
+.auth-submit{width:100%;padding:13px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;font-size:14px;font-weight:600;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;margin-top:2px;}
+.auth-submit:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,42,68,0.3);}
+.auth-note{font-size:12px;color:var(--muted);text-align:center;margin-top:12px;}
+.auth-note a{color:var(--navy);font-weight:600;text-decoration:none;}
+</style>
+  <script src="config.js"></script>
+</head>
+<body>
+
+<header class="header">
+  <a href="index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.18L4.57 11 12 6.72 19.43 11 12 15.18z"/></svg></div>
+    <span class="logo-text">Legal<span>Ease</span></span>
+  </a>
+  <div class="header-links">
+    <a href="chat.html" class="header-link">← Chat</a>
+    <a href="index.html" class="header-link">Home</a>
+  </div>
+</header>
+
+<main class="page">
+  <div class="page-hero">
+    <div class="page-eyebrow">🛠 Legal Tools</div>
+    <h1 class="page-title">What would you like to do?</h1>
+    <p class="page-sub">All tools are powered by AI and grounded in real Indian statute text.</p>
+  </div>
+
+  <div class="tools-grid">
+    <!-- Generate Documents -->
+    <a href="generate.html" class="tool-card gold">
+      <div class="tool-icon">📋</div>
+      <div>
+        <div class="tool-label">Generate Documents</div>
+        <div class="tool-desc">Draft a Complaint Letter to SHO, Legal Notice, or Cybercrime Complaint — pre-filled from your chat conversation.</div>
+      </div>
+      <div class="tool-badge">3 Document Types</div>
+      <div class="tool-arrow">Open tool <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <!-- Summarize PDF -->
+    <a href="summarize.html" class="tool-card blue">
+      <div class="tool-icon">📄</div>
+      <div>
+        <div class="tool-label">Summarize a Document</div>
+        <div class="tool-desc">Upload any Indian legal PDF — FIR, court order, legal notice, agreement — and get a plain-language summary instantly.</div>
+      </div>
+      <div class="tool-badge">PDF Upload</div>
+      <div class="tool-arrow">Open tool <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </a>
+
+    <!-- Legal Section Tagger -->
+    <div class="tool-card green" onclick="requireLogin('tagger')">
+      <div class="tool-icon">🏷</div>
+      <div>
+        <div class="tool-label">Tag Legal Sections</div>
+        <div class="tool-desc">Describe your situation in plain words and instantly get the exact BNS, IT Act, or Motor Vehicles Act sections that apply.</div>
+      </div>
+      <div class="tool-badge">Auto-Tagging</div>
+      <div class="tool-arrow">Open tool <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </div>
+
+    <!-- Case Outcome Predictor -->
+    <div class="tool-card purple" onclick="requireLogin('predictor')">
+      <div class="tool-icon">⚖</div>
+      <div>
+        <div class="tool-label">Predict Case Outcome</div>
+        <div class="tool-desc">Describe your case and get an AI-powered analysis of your legal position, probable outcome, timeline, and recommended actions.</div>
+      </div>
+      <div class="tool-badge">AI Analysis</div>
+      <div class="tool-arrow">Open tool <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </div>
+
+    <!-- Lawyer Finder -->
+    <a href="lawyer-finder.html" class="tool-card" style="border-color:rgba(34,197,94,0.2);--accent:#22c55e;">
+      <div class="tool-icon" style="background:rgba(34,197,94,0.1);font-size:26px;">📍</div>
+      <div>
+        <div class="tool-label" style="color:var(--navy);">Find a Lawyer</div>
+        <div class="tool-desc">Locate advocates and law firms near you on an interactive map. Filter by practice area — Criminal, Civil, Cyber, Family, and more.</div>
+      </div>
+      <div class="tool-badge" style="background:rgba(34,197,94,0.1);color:#16a34a;">Google Maps</div>
+      <div class="tool-arrow">Open tool <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+    </a>
+  </div>
+</main>
+
+<!-- Tool modals (Tagger + Predictor inline) -->
+<div id="taggerModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,15,28,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 28px 70px rgba(0,0,0,0.35);">
+    <div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:20px 24px;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:white;">🏷 Legal Section Tagger</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:2px;">Describe your situation → get exact law sections</div>
+      </div>
+      <button onclick="closeToolModal('taggerModal')" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="padding:24px;">
+      <label style="display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">Describe Your Situation</label>
+      <textarea id="taggerInput" rows="4" placeholder="e.g. Someone hacked into my bank account and transferred money without my permission..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:#f9fafb;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s;"></textarea>
+      <button onclick="runTagger()" id="taggerBtn" style="width:100%;margin-top:12px;padding:13px;background:linear-gradient(135deg,#16a34a,#15803d);color:white;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;">Find Applicable Sections →</button>
+      <div id="taggerResult" style="margin-top:20px;display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">Applicable Sections</div>
+        <div id="taggerSections" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+        <div style="font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Why Each Applies</div>
+        <div id="taggerExplanation" style="font-size:13.5px;color:#374151;line-height:1.8;background:#f7f9fc;border-radius:10px;padding:16px;white-space:pre-wrap;"></div>
+      </div>
+      <div id="taggerLoader" style="display:none;text-align:center;padding:24px;color:var(--muted);font-size:13.5px;">
+        <div style="width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#16a34a;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+        Analyzing your situation…
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="predictorModal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(10,15,28,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 28px 70px rgba(0,0,0,0.35);">
+    <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:20px 24px;border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:white;">⚖ Case Outcome Predictor</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.65);margin-top:2px;">AI-powered legal position analysis</div>
+      </div>
+      <button onclick="closeToolModal('predictorModal')" style="background:rgba(255,255,255,0.15);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="padding:24px;">
+      <label style="display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">Describe Your Case</label>
+      <textarea id="predictorInput" rows="5" placeholder="e.g. My employer has not paid my salary for 3 months despite repeated reminders. I have WhatsApp messages as proof. I am a software developer employed since 2022..." style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:#f9fafb;outline:none;resize:vertical;line-height:1.6;transition:border-color .2s;"></textarea>
+      <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
+        <label style="font-size:12px;font-weight:600;color:var(--navy);">Your role:</label>
+        <select id="predictorRole" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);background:#f9fafb;outline:none;">
+          <option value="victim">Victim / Complainant</option>
+          <option value="accused">Accused / Respondent</option>
+        </select>
+      </div>
+      <button onclick="runPredictor()" id="predictorBtn" style="width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;">Analyze My Case →</button>
+      <div id="predictorLoader" style="display:none;text-align:center;padding:28px;color:var(--muted);font-size:13.5px;">
+        <div style="width:32px;height:32px;border:3px solid #e2e8f0;border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;"></div>
+        Analyzing your case — this may take 15-20 seconds…
+      </div>
+      <div id="predictorResult" style="margin-top:20px;display:none;">
+        <div style="background:#faf5ff;border:1px solid #e9d5ff;border-left:3px solid #7c3aed;border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:12.5px;color:#6b21a8;">
+          ⚠ This is an AI-generated estimate for general awareness only. It is NOT legal advice. Consult a qualified lawyer before taking any action.
+        </div>
+        <div id="predictorSections" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;"></div>
+        <div style="font-size:13.5px;color:#374151;line-height:1.9;background:#f7f9fc;border-radius:10px;padding:18px;white-space:pre-wrap;" id="predictorAnalysis"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Login gate overlay -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.18L4.57 11 12 6.72 19.43 11 12 15.18z"/></svg></div>
+        <span class="auth-logo-text">Legal<span>Ease</span></span>
+      </div>
+      <div class="auth-tagline">Sign in to use this tool</div>
+    </div>
+    <div class="auth-body">
+      <div class="field-row">
+        <label>Email</label>
+        <input type="email" id="lgEmail" placeholder="you@email.com">
+        <div class="err" id="lgEmailErr"></div>
+      </div>
+      <div class="field-row">
+        <label>Password</label>
+        <input type="password" id="lgPass" placeholder="Your password">
+        <div class="err" id="lgPassErr"></div>
+      </div>
+      <button class="auth-submit" onclick="doLogin()">Sign In →</button>
+      <div class="auth-note">No account? <a href="index.html">Create one on the homepage</a></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin{to{transform:rotate(360deg);}}
+</style>
+
+<script>
+const API = window.LEGALEASE_API || "http://127.0.0.1:8000";
+const LS  = {
+  getSession: () => JSON.parse(localStorage.getItem("le_session") || "null"),
+  getUsers:   () => JSON.parse(localStorage.getItem("le_users")   || "{}"),
+};
+
+let _pendingTool = null;
+
+function requireLogin(tool) {
+  if (LS.getSession()) { openTool(tool); return; }
+  _pendingTool = tool;
+  document.getElementById("authOverlay").classList.remove("hidden");
+}
+
+function doLogin() {
+  const email = document.getElementById("lgEmail").value.trim().toLowerCase();
+  const pass  = document.getElementById("lgPass").value;
+  const users = LS.getUsers();
+  const eErr  = document.getElementById("lgEmailErr");
+  const pErr  = document.getElementById("lgPassErr");
+  eErr.classList.remove("show"); pErr.classList.remove("show");
+
+  if (!email) { eErr.textContent="Email required."; eErr.classList.add("show"); return; }
+  if (!users[email]) { eErr.textContent="No account found."; eErr.classList.add("show"); return; }
+  if (users[email].password !== btoa(pass)) { pErr.textContent="Incorrect password."; pErr.classList.add("show"); return; }
+
+  localStorage.setItem("le_session", JSON.stringify({email, name: users[email].name, profession: users[email].profession||""}));
+  document.getElementById("authOverlay").classList.add("hidden");
+  if (_pendingTool) { openTool(_pendingTool); _pendingTool = null; }
+}
+
+function openTool(tool) {
+  const modal = document.getElementById(tool + "Modal");
+  if (modal) { modal.style.display = "flex"; }
+}
+
+function closeToolModal(id) {
+  document.getElementById(id).style.display = "none";
+}
+
+// Close modal on backdrop click
+["taggerModal","predictorModal"].forEach(id => {
+  document.getElementById(id).addEventListener("click", e => {
+    if (e.target.id === id) closeToolModal(id);
+  });
+});
+
+// ── LEGAL SECTION TAGGER ──────────────────────────────────────────
+async function runTagger() {
+  const situation = document.getElementById("taggerInput").value.trim();
+  if (!situation) { alert("Please describe your situation first."); return; }
+
+  const btn    = document.getElementById("taggerBtn");
+  const loader = document.getElementById("taggerLoader");
+  const result = document.getElementById("taggerResult");
+
+  btn.disabled = true;
+  loader.style.display = "block";
+  result.style.display = "none";
+
+  try {
+    const res  = await fetch(`${API}/tag_sections`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({situation}),
+    });
+    const data = await res.json();
+
+    // Render section tags
+    const tagsEl = document.getElementById("taggerSections");
+    tagsEl.innerHTML = "";
+    (data.sections || []).forEach(s => {
+      const tag = document.createElement("div");
+      tag.style.cssText = "display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.25);border-radius:9999px;font-size:12px;font-weight:600;color:#15803d;";
+      tag.textContent = `${s.act_name} — s.${s.section_number}`;
+      tagsEl.appendChild(tag);
+    });
+
+    document.getElementById("taggerExplanation").textContent = data.explanation || "No explanation available.";
+    loader.style.display = "none";
+    result.style.display = "block";
+
+  } catch {
+    loader.style.display = "none";
+    alert("Could not connect to server. Make sure app.py is running.");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── CASE OUTCOME PREDICTOR ────────────────────────────────────────
+async function runPredictor() {
+  const situation = document.getElementById("predictorInput").value.trim();
+  const role      = document.getElementById("predictorRole").value;
+  if (!situation) { alert("Please describe your case first."); return; }
+
+  const btn    = document.getElementById("predictorBtn");
+  const loader = document.getElementById("predictorLoader");
+  const result = document.getElementById("predictorResult");
+
+  btn.disabled = true;
+  loader.style.display = "block";
+  result.style.display = "none";
+
+  try {
+    const res  = await fetch(`${API}/predict_outcome`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({situation, role}),
+    });
+    const data = await res.json();
+
+    // Render sections
+    const secEl = document.getElementById("predictorSections");
+    secEl.innerHTML = "";
+    (data.sections || []).forEach(s => {
+      const tag = document.createElement("div");
+      tag.style.cssText = "display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:9999px;font-size:12px;font-weight:600;color:#6d28d9;";
+      tag.textContent = `${s.act_name} — s.${s.section_number}`;
+      secEl.appendChild(tag);
+    });
+
+    document.getElementById("predictorAnalysis").textContent = data.analysis || "No analysis available.";
+    loader.style.display = "none";
+    result.style.display = "block";
+
+  } catch {
+    loader.style.display = "none";
+    alert("Could not connect to server. Make sure app.py is running.");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Login gate check on load
+window.onload = () => {
+  // generate.html and summarize.html handle their own auth
+  // This page just shows cards — no gate needed to view them
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalEase — Find a Lawyer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║  REPLACE YOUR_GOOGLE_MAPS_API_KEY BELOW WITH YOUR KEY  ║
+  ║  Get it from: console.cloud.google.com                 ║
+  ║  Enable: Maps JavaScript API + Places API              ║
+  ╚══════════════════════════════════════════════════════════╝
+-->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap" async defer></script>
+
+<style>
+/* ── RESET & TOKENS ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:     #070c18;
+  --bg2:    #0c1428;
+  --surface:#0f1a30;
+  --s2:     #162340;
+  --border: rgba(255,255,255,0.07);
+  --bg:     #070c18;
+  --navy:   #1a2a44;
+  --gold:   #e6a817;
+  --gold2:  #c48c10;
+  --gold3:  #f5c842;
+  --glow:   rgba(230,168,23,0.15);
+  --text:   #e8edf8;
+  --text2:  rgba(232,237,248,0.7);
+  --muted:  rgba(232,237,248,0.38);
+  --green:  #22c55e;
+  --red:    #ef4444;
+  --blue:   #60a5fa;
+}
+
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  flex-direction:column;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────────── */
+.header{
+  height:58px;flex-shrink:0;
+  background:rgba(7,12,24,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px var(--glow);}
+.logo-icon svg{width:18px;height:18px;fill:var(--bg);}
+.logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);}
+.logo-text span{color:var(--gold);}
+.header-links{display:flex;gap:8px;}
+.header-link{
+  color:var(--text2);text-decoration:none;font-size:13px;
+  padding:7px 13px;border-radius:8px;
+  transition:all .2s;background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+}
+.header-link:hover{background:rgba(255,255,255,0.1);color:var(--text);}
+.header-link.gold{color:var(--gold);border-color:rgba(230,168,23,0.2);}
+
+/* ── MAIN LAYOUT — SPLIT SCREEN ─────────────────────────────────── */
+.layout{
+  flex:1;display:flex;overflow:hidden;
+}
+
+/* ── LEFT PANEL ─────────────────────────────────────────────────── */
+.panel{
+  width:400px;min-width:340px;
+  display:flex;flex-direction:column;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  overflow:hidden;
+}
+
+/* Panel header */
+.panel-head{
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.panel-title{
+  font-family:'Syne',sans-serif;
+  font-size:18px;font-weight:800;color:var(--text);
+  margin-bottom:4px;
+}
+.panel-sub{font-size:12.5px;color:var(--muted);}
+
+/* Search box */
+.search-wrap{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  flex-shrink:0;display:flex;flex-direction:column;gap:10px;
+}
+.search-row{
+  display:flex;gap:8px;align-items:center;
+  background:var(--surface);
+  border:1.5px solid var(--border);
+  border-radius:12px;padding:0 14px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.search-row:focus-within{
+  border-color:rgba(230,168,23,0.5);
+  box-shadow:0 0 0 3px var(--glow);
+}
+.search-row svg{width:16px;height:16px;color:var(--muted);flex-shrink:0;}
+.search-input{
+  flex:1;border:none;background:transparent;
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  color:var(--text);outline:none;padding:11px 0;
+}
+.search-input::placeholder{color:var(--muted);}
+.btn-locate{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 12px;border-radius:8px;
+  background:rgba(230,168,23,0.1);border:1px solid rgba(230,168,23,0.25);
+  color:var(--gold);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .2s;white-space:nowrap;
+  font-family:'DM Sans',sans-serif;
+}
+.btn-locate:hover{background:rgba(230,168,23,0.18);}
+.btn-locate svg{width:13px;height:13px;}
+.btn-locate.loading{opacity:.6;pointer-events:none;}
+
+/* Filter chips */
+.filters{
+  display:flex;gap:7px;flex-wrap:wrap;
+}
+.filter-chip{
+  padding:5px 12px;border-radius:9999px;
+  font-size:11.5px;font-weight:600;cursor:pointer;
+  background:var(--surface);border:1px solid var(--border);
+  color:var(--muted);transition:all .2s;
+  font-family:'DM Sans',sans-serif;
+}
+.filter-chip:hover{border-color:rgba(230,168,23,0.3);color:var(--text);}
+.filter-chip.active{
+  background:rgba(230,168,23,0.12);
+  border-color:rgba(230,168,23,0.4);
+  color:var(--gold3);
+}
+
+/* Search button */
+.btn-search{
+  width:100%;padding:11px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:var(--bg);font-size:13.5px;font-weight:700;
+  border:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.btn-search:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--glow);}
+.btn-search:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* Results list */
+.results-list{
+  flex:1;overflow-y:auto;padding:12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.results-list::-webkit-scrollbar{width:4px;}
+.results-list::-webkit-scrollbar-track{background:transparent;}
+.results-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* Result states */
+.state-box{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:14px;padding:40px 20px;
+  text-align:center;color:var(--muted);
+  flex:1;
+}
+.state-icon{font-size:36px;opacity:.5;}
+.state-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text2);}
+.state-sub{font-size:12.5px;line-height:1.6;max-width:240px;}
+
+/* Lawyer card */
+.lawyer-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:16px;cursor:pointer;
+  transition:all .22s;position:relative;overflow:hidden;
+}
+.lawyer-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--gold),var(--gold2));
+  opacity:0;transition:opacity .2s;
+}
+.lawyer-card:hover,.lawyer-card.active{
+  border-color:rgba(230,168,23,0.3);
+  background:var(--s2);
+  transform:translateX(3px);
+}
+.lawyer-card:hover::before,.lawyer-card.active::before{opacity:1;}
+
+.card-top{display:flex;align-items:flex-start;gap:12px;}
+.card-avatar{
+  width:42px;height:42px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--navy),#2a4f7a);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:800;
+  color:var(--gold3);
+}
+.card-info{flex:1;min-width:0;}
+.card-name{
+  font-family:'Syne',sans-serif;font-size:14.5px;font-weight:700;
+  color:var(--text);margin-bottom:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.card-type{font-size:12px;color:var(--muted);}
+.card-dist{
+  font-size:11.5px;font-weight:600;color:var(--gold);
+  white-space:nowrap;
+}
+
+.card-address{
+  font-size:12px;color:var(--text2);margin-top:8px;
+  line-height:1.55;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+.card-meta{
+  display:flex;align-items:center;gap:10px;margin-top:10px;
+  flex-wrap:wrap;
+}
+.card-rating{
+  display:flex;align-items:center;gap:4px;
+  font-size:12px;font-weight:600;color:var(--gold3);
+}
+.card-status{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:600;padding:3px 9px;
+  border-radius:9999px;
+}
+.card-status.open{background:rgba(34,197,94,0.1);color:#4ade80;}
+.card-status.closed{background:rgba(239,68,68,0.1);color:#f87171;}
+.card-status .dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+.card-actions{display:flex;gap:7px;margin-top:11px;}
+.card-btn{
+  flex:1;padding:7px 10px;border-radius:8px;
+  font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .18s;font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  text-decoration:none;
+}
+.card-btn.primary{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:var(--bg);border:none;
+}
+.card-btn.primary:hover{box-shadow:0 4px 12px var(--glow);}
+.card-btn.secondary{
+  background:transparent;color:var(--text2);
+  border:1px solid var(--border);
+}
+.card-btn.secondary:hover{background:rgba(255,255,255,0.06);color:var(--text);}
+.card-btn svg{width:12px;height:12px;}
+
+/* Results count */
+.results-meta{
+  padding:10px 16px 4px;
+  font-size:11.5px;color:var(--muted);flex-shrink:0;
+}
+.results-meta span{color:var(--gold);font-weight:600;}
+
+/* ── RIGHT PANEL — MAP ───────────────────────────────────────────── */
+.map-panel{
+  flex:1;position:relative;background:var(--bg);
+}
+#map{width:100%;height:100%;}
+
+/* Map overlay — shown before search */
+.map-overlay{
+  position:absolute;inset:0;z-index:10;
+  background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(26,42,68,0.4),transparent),
+             var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;padding:40px;text-align:center;
+  transition:opacity .5s,pointer-events .5s;
+}
+.map-overlay.hidden{opacity:0;pointer-events:none;}
+.map-overlay-icon{
+  width:80px;height:80px;border-radius:50%;
+  background:rgba(230,168,23,0.1);border:1px solid rgba(230,168,23,0.2);
+  display:flex;align-items:center;justify-content:center;font-size:34px;
+  animation:mapPulse 3s ease-in-out infinite;
+}
+@keyframes mapPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(230,168,23,0.2);}
+  50%{box-shadow:0 0 0 20px rgba(230,168,23,0);}
+}
+.map-overlay-title{
+  font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:var(--text);
+}
+.map-overlay-sub{font-size:14px;color:var(--muted);max-width:300px;line-height:1.7;}
+
+/* Loading spinner on map */
+.map-spinner{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:20;display:none;flex-direction:column;
+  align-items:center;gap:12px;
+}
+.map-spinner.show{display:flex;}
+.spinner-ring{
+  width:44px;height:44px;border:3px solid rgba(230,168,23,0.15);
+  border-top-color:var(--gold);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner-label{font-size:13px;color:var(--gold);font-weight:500;}
+
+/* No results */
+.no-results{
+  padding:24px 16px;text-align:center;
+  font-size:13px;color:var(--muted);
+}
+.no-results strong{color:var(--text2);display:block;margin-bottom:5px;
+  font-family:'Syne',sans-serif;font-size:14px;
+}
+
+/* Mobile */
+@media(max-width:768px){
+  .layout{flex-direction:column;}
+  .panel{width:100%;min-width:0;max-height:55vh;}
+  .map-panel{flex:1;}
+}
+
+/* LOGIN GATE */
+.overlay{position:fixed;inset:0;z-index:1000;background:rgba(2,5,12,0.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay.hidden{display:none;}
+.auth-card{background:#0f1a30;border:1px solid var(--border);border-radius:20px;width:100%;max-width:380px;box-shadow:0 28px 70px rgba(0,0,0,0.6);overflow:hidden;}
+.auth-header{background:linear-gradient(135deg,var(--navy),#2a4f7a);padding:24px 24px 18px;text-align:center;}
+.auth-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.auth-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold2));border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.auth-logo-icon svg{width:20px;height:20px;fill:var(--bg);}
+.auth-logo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:white;}
+.auth-logo-text span{color:var(--gold);}
+.auth-tagline{font-size:12px;color:rgba(255,255,255,0.5);}
+.auth-body{padding:20px 22px 24px;}
+.field-row{margin-bottom:13px;}
+.field-row label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.field-row input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;color:var(--text);font-family:'DM Sans',sans-serif;background:var(--surface);outline:none;transition:border-color .2s;}
+.field-row input:focus{border-color:rgba(230,168,23,0.5);background:var(--s2);}
+.err{font-size:11px;color:#f87171;margin-top:4px;display:none;}
+.err.show{display:block;}
+.auth-submit{width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:2px;}
+.auth-submit:hover{transform:translateY(-1px);box-shadow:0 6px 18px var(--glow);}
+.auth-note{font-size:12px;color:var(--muted);text-align:center;margin-top:11px;}
+.auth-note a{color:var(--gold);font-weight:600;text-decoration:none;}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────── -->
+<header class="header">
+  <a href="index.html" class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.18L4.57 11 12 6.72 19.43 11 12 15.18z"/></svg></div>
+    <span class="logo-text">Legal<span>Ease</span></span>
+  </a>
+  <div class="header-links">
+    <a href="documents.html" class="header-link gold">← Tools</a>
+    <a href="chat.html" class="header-link">Chat</a>
+    <a href="index.html" class="header-link">Home</a>
+  </div>
+</header>
+
+<!-- ── SPLIT LAYOUT ─────────────────────────────────────────────────── -->
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <aside class="panel">
+
+    <div class="panel-head">
+      <div class="panel-title">Find a Lawyer Near You</div>
+      <div class="panel-sub">Advocates and law firms across India</div>
+    </div>
+
+    <div class="search-wrap">
+      <div class="search-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <input class="search-input" id="locationInput"
+               placeholder="Enter district, city or area…"
+               onkeydown="if(event.key==='Enter')doSearch()">
+        <button class="btn-locate" id="locateBtn" onclick="useMyLocation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+          My Location
+        </button>
+      </div>
+
+      <!-- Practice area filters -->
+      <div class="filters" id="filters">
+        <div class="filter-chip active" data-filter="" onclick="toggleFilter(this)">All</div>
+        <div class="filter-chip" data-filter="criminal lawyer" onclick="toggleFilter(this)">Criminal</div>
+        <div class="filter-chip" data-filter="civil lawyer" onclick="toggleFilter(this)">Civil</div>
+        <div class="filter-chip" data-filter="cyber crime lawyer" onclick="toggleFilter(this)">Cyber</div>
+        <div class="filter-chip" data-filter="family lawyer" onclick="toggleFilter(this)">Family</div>
+        <div class="filter-chip" data-filter="labour lawyer" onclick="toggleFilter(this)">Labour</div>
+        <div class="filter-chip" data-filter="legal aid" onclick="toggleFilter(this)">Legal Aid</div>
+      </div>
+
+      <button class="btn-search" id="searchBtn" onclick="doSearch()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search Lawyers
+      </button>
+    </div>
+
+    <!-- Results count -->
+    <div class="results-meta" id="resultsMeta" style="display:none;"></div>
+
+    <!-- Results list -->
+    <div class="results-list" id="resultsList">
+      <div class="state-box">
+        <div class="state-icon">⚖️</div>
+        <div class="state-title">Find Legal Help</div>
+        <div class="state-sub">Enter your location above or click "My Location" to discover advocates near you.</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL — MAP -->
+  <div class="map-panel">
+    <div id="map"></div>
+
+    <!-- Pre-search overlay -->
+    <div class="map-overlay" id="mapOverlay">
+      <div class="map-overlay-icon">🗺</div>
+      <div class="map-overlay-title">Map Ready</div>
+      <div class="map-overlay-sub">Search for lawyers on the left — results will appear here as pins on the map.</div>
+    </div>
+
+    <!-- Loading spinner -->
+    <div class="map-spinner" id="mapSpinner">
+      <div class="spinner-ring"></div>
+      <div class="spinner-label">Searching nearby lawyers…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── LOGIN GATE ──────────────────────────────────────────────────── -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.18L4.57 11 12 6.72 19.43 11 12 15.18z"/></svg></div>
+        <span class="auth-logo-text">Legal<span>Ease</span></span>
+      </div>
+      <div class="auth-tagline">Sign in to find lawyers near you</div>
+    </div>
+    <div class="auth-body">
+      <div class="field-row">
+        <label>Email</label>
+        <input type="email" id="lgEmail" placeholder="you@email.com">
+        <div class="err" id="lgEmailErr"></div>
+      </div>
+      <div class="field-row">
+        <label>Password</label>
+        <input type="password" id="lgPass" placeholder="Your password">
+        <div class="err" id="lgPassErr"></div>
+      </div>
+      <button class="auth-submit" onclick="doLogin()">Sign In →</button>
+      <div class="auth-note">No account? <a href="index.html">Create one on the homepage</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────
+const LS = {
+  getSession: () => JSON.parse(localStorage.getItem("le_session") || "null"),
+  getUsers:   () => JSON.parse(localStorage.getItem("le_users")   || "{}"),
+};
+
+// ── STATE ───────────────────────────────────────────────────────────
+let map             = null;
+let service         = null;
+let infoWindow      = null;
+let markers         = [];
+let currentFilter   = "";
+let currentLat      = null;
+let currentLng      = null;
+let activeCardIndex = -1;
+let allResults      = [];
+
+// ── AUTH ────────────────────────────────────────────────────────────
+function doLogin() {
+  const email = document.getElementById("lgEmail").value.trim().toLowerCase();
+  const pass  = document.getElementById("lgPass").value;
+  const users = LS.getUsers();
+  const eErr  = document.getElementById("lgEmailErr");
+  const pErr  = document.getElementById("lgPassErr");
+  eErr.classList.remove("show"); pErr.classList.remove("show");
+
+  if (!email) { eErr.textContent="Email required."; eErr.classList.add("show"); return; }
+  if (!users[email]) { eErr.textContent="No account found."; eErr.classList.add("show"); return; }
+  if (users[email].password !== btoa(pass)) { pErr.textContent="Incorrect password."; pErr.classList.add("show"); return; }
+
+  localStorage.setItem("le_session", JSON.stringify({email, name: users[email].name}));
+  document.getElementById("authOverlay").classList.add("hidden");
+}
+
+// ── GOOGLE MAPS INIT ────────────────────────────────────────────────
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center:    {lat: 20.5937, lng: 78.9629},
+    zoom:      5,
+    styles:    DARK_MAP_STYLE,
+    mapTypeControl:    false,
+    streetViewControl: false,
+    fullscreenControl: true,
+    zoomControlOptions: {
+      position: google.maps.ControlPosition.RIGHT_CENTER,
+    },
+  });
+
+  service    = new google.maps.places.PlacesService(map);
+  infoWindow = new google.maps.InfoWindow();
+
+  // ── Autocomplete on location input ───────────────────────────────
+  const locationInput = document.getElementById("locationInput");
+  const autocomplete  = new google.maps.places.Autocomplete(locationInput, {
+    componentRestrictions: { country: "in" },
+    fields: ["geometry", "name", "formatted_address"],
+    types:  ["geocode", "establishment"],
+  });
+
+  autocomplete.addListener("place_changed", () => {
+    const place = autocomplete.getPlace();
+    if (!place.geometry || !place.geometry.location) return;
+
+    // Store coordinates from autocomplete selection
+    currentLat = place.geometry.location.lat();
+    currentLng = place.geometry.location.lng();
+
+    // Update input to show clean name
+    locationInput.value = place.name || place.formatted_address || locationInput.value;
+  });
+
+  // Prevent form submit on Enter in location input
+  locationInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); doSearch(); }
+  });
+
+  // Clear stored coords when user types manually (so geocoder runs fresh)
+  locationInput.addEventListener("input", () => {
+    currentLat = null;
+    currentLng = null;
+  });
+}
+
+// ── FILTER ──────────────────────────────────────────────────────────
+function toggleFilter(el) {
+  document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  currentFilter = el.dataset.filter;
+}
+
+// ── GEOLOCATION ─────────────────────────────────────────────────────
+const _LOCATE_BTN_HTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0;"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> My Location`;
+
+function useMyLocation() {
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported in this browser.");
+    return;
+  }
+  const btn = document.getElementById("locateBtn");
+  btn.classList.add("loading");
+  btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;animation:spin .7s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Locating…`;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      currentLat = pos.coords.latitude;
+      currentLng = pos.coords.longitude;
+
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: { lat: currentLat, lng: currentLng } }, (results, status) => {
+        // Always restore button regardless of geocode result
+        btn.classList.remove("loading");
+        btn.innerHTML = _LOCATE_BTN_HTML;
+
+        if (status === "OK" && results[0]) {
+          const parts = results[0].address_components;
+          const city  = parts.find(p =>
+            p.types.includes("locality") ||
+            p.types.includes("administrative_area_level_2")
+          );
+          document.getElementById("locationInput").value =
+            city ? city.long_name : results[0].formatted_address.split(",")[0];
+        }
+        doSearch();
+      });
+    },
+    err => {
+      btn.classList.remove("loading");
+      btn.innerHTML = _LOCATE_BTN_HTML;
+      const msgs = {
+        1: "Location access denied. Please allow location access and try again.",
+        2: "Location unavailable. Please enter your city manually.",
+        3: "Location request timed out. Please enter your city manually.",
+      };
+      alert(msgs[err.code] || "Could not access your location. Please enter your city manually.");
+    },
+    { timeout: 10000, maximumAge: 60000 }
+  );
+}
+
+// ── SEARCH ──────────────────────────────────────────────────────────
+function doSearch() {
+  const query = document.getElementById("locationInput").value.trim();
+  if (!query && currentLat === null) {
+    const inp = document.getElementById("locationInput");
+    inp.focus();
+    inp.style.borderColor = "var(--gold)";
+    setTimeout(() => { inp.style.borderColor = ""; }, 2000);
+    return;
+  }
+
+  const btn = document.getElementById("searchBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<div style="width:15px;height:15px;border:2.5px solid rgba(26,42,44,0.3);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;"></div> Searching…`;
+
+  const restoreBtn = () => {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search Lawyers`;
+  };
+
+  document.getElementById("mapOverlay").classList.add("hidden");
+  document.getElementById("mapSpinner").classList.add("show");
+  document.getElementById("resultsMeta").style.display = "none";
+
+  clearMarkers();
+  showResultsState("loading");
+
+  const keyword = currentFilter
+    ? currentFilter + " advocate lawyer"
+    : "advocate lawyer legal services";
+
+  // Use stored coords if available (from geolocation or autocomplete)
+  if (currentLat !== null && currentLng !== null) {
+    searchNearby(new google.maps.LatLng(currentLat, currentLng), keyword);
+    restoreBtn();
+    return;
+  }
+
+  // Geocode text input
+  const geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: query + ", India" }, (results, status) => {
+    restoreBtn();
+    if (status !== "OK" || !results[0]) {
+      showError("Location not found. Try a different city or district name.");
+      return;
+    }
+    const loc = results[0].geometry.location;
+    currentLat = loc.lat();
+    currentLng = loc.lng();
+    searchNearby(loc, keyword);
+  });
+}
+
+
+function searchNearby(location, keyword) {
+  map.setCenter(location);
+  map.setZoom(13);
+
+  // User location marker
+  new google.maps.Marker({
+    position: location,
+    map,
+    icon: {
+      path:        google.maps.SymbolPath.CIRCLE,
+      scale:       10,
+      fillColor:   "#e6a817",
+      fillOpacity: 1,
+      strokeColor: "#ffffff",
+      strokeWeight: 2,
+    },
+    title:  "Your Location",
+    zIndex: 999,
+  });
+
+  const request = {
+    location,
+    radius:  10000,
+    keyword: keyword,
+    type:    ["lawyer"],
+  };
+
+  // Safety timeout — if Places API callback never fires (e.g. billing not linked,
+  // REQUEST_DENIED, or network issue), show a helpful error after 10 seconds
+  // instead of spinning forever.
+  const timeoutId = setTimeout(() => {
+    document.getElementById("mapSpinner").classList.remove("show");
+    document.getElementById("searchBtn").disabled = false;
+    document.getElementById("searchBtn").innerHTML =
+      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search Lawyers`;
+    showError(
+      "Search timed out. This usually means billing is not activated on your Google Cloud project " +
+      "— the Places API requires a linked billing account (free $200 credit applies, no charge for demos). " +
+      "Go to console.cloud.google.com → Billing → Link billing account."
+    );
+  }, 10000);
+
+  service.nearbySearch(request, (results, status) => {
+    clearTimeout(timeoutId); // cancel the timeout since callback fired
+
+    document.getElementById("searchBtn").disabled = false;
+    document.getElementById("searchBtn").innerHTML =
+      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Search Lawyers`;
+    document.getElementById("mapSpinner").classList.remove("show");
+
+    const PS = google.maps.places.PlacesServiceStatus;
+
+    if (status === PS.OK && results.length > 0) {
+      allResults = results;
+      renderResults(results, location);
+    } else if (status === PS.ZERO_RESULTS) {
+      showNoResults();
+    } else if (status === PS.REQUEST_DENIED) {
+      showError(
+        "Places API request denied. Check that: (1) your API key is correct in lawyer-finder.html, " +
+        "(2) the Places API is enabled in Google Cloud Console, and " +
+        "(3) a billing account is linked to your project."
+      );
+    } else if (status === PS.OVER_QUERY_LIMIT) {
+      showError("Query limit reached. Please wait a moment and try again.");
+    } else if (status === PS.INVALID_REQUEST) {
+      showError("Invalid search request. Please try a different location.");
+    } else {
+      showError(`Search failed (status: ${status}). Check your Google Maps API key and billing.`);
+    }
+  });
+}
+
+// ── RENDER RESULTS ───────────────────────────────────────────────────
+function renderResults(results, userLocation) {
+  const list = document.getElementById("resultsList");
+  list.innerHTML = "";
+
+  const meta = document.getElementById("resultsMeta");
+  meta.style.display = "block";
+  meta.innerHTML = `Found <span>${results.length}</span> lawyer${results.length !== 1 ? "s" : ""} near you`;
+
+  results.forEach((place, i) => {
+    const dist  = calcDistance(userLocation, place.geometry.location);
+    const name  = place.name || "Unknown";
+    const init  = name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase();
+    const addr  = place.vicinity || "";
+    const rating = place.rating;
+    const isOpen = place.opening_hours?.open_now;
+
+    // Create marker
+    const marker = new google.maps.Marker({
+      position: place.geometry.location,
+      map,
+      title: name,
+      icon: {
+        path:        google.maps.SymbolPath.CIRCLE,
+        scale:       9,
+        fillColor:   i === 0 ? "#e6a817" : "#1a2a44",
+        fillOpacity: 1,
+        strokeColor: "#e6a817",
+        strokeWeight: i === 0 ? 2.5 : 1.5,
+      },
+      label: {
+        text:     String(i + 1),
+        color:    "#ffffff",
+        fontSize: "11px",
+        fontWeight: "700",
+      },
+      zIndex: 100 - i,
+    });
+    markers.push(marker);
+
+    marker.addListener("click", () => activateCard(i, place, marker));
+
+    // Create card
+    const card = document.createElement("div");
+    card.className    = "lawyer-card" + (i === 0 ? " active" : "");
+    card.dataset.index = i;
+
+    const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${place.place_id}`;
+    const dirUrl   = `https://www.google.com/maps/dir/?api=1&destination_place_id=${place.place_id}`;
+
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-avatar">${init}</div>
+        <div class="card-info">
+          <div class="card-name">${escHtml(name)}</div>
+          <div class="card-type">Advocate / Law Firm</div>
+        </div>
+        <div class="card-dist">${dist}</div>
+      </div>
+      ${addr ? `<div class="card-address">${escHtml(addr)}</div>` : ""}
+      <div class="card-meta">
+        ${rating ? `<div class="card-rating">★ ${rating.toFixed(1)}</div>` : ""}
+        ${isOpen !== undefined
+          ? `<div class="card-status ${isOpen ? "open" : "closed"}"><span class="dot"></span>${isOpen ? "Open now" : "Closed"}</div>`
+          : ""}
+      </div>
+      <div class="card-actions">
+        <a class="card-btn primary" href="${dirUrl}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          Directions
+        </a>
+        <a class="card-btn secondary" href="${gmapsUrl}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          View on Maps
+        </a>
+      </div>`;
+
+    card.addEventListener("click", e => {
+      if (e.target.closest("a")) return;
+      activateCard(i, place, markers[i]);
+    });
+
+    list.appendChild(card);
+  });
+
+  // Activate first result
+  if (results.length > 0) activateCard(0, results[0], markers[0]);
+}
+
+// ── ACTIVATE CARD + MARKER ───────────────────────────────────────────
+function activateCard(i, place, marker) {
+  // Deactivate all cards
+  document.querySelectorAll(".lawyer-card").forEach(c => c.classList.remove("active"));
+  const card = document.querySelector(`.lawyer-card[data-index="${i}"]`);
+  if (card) {
+    card.classList.add("active");
+    card.scrollIntoView({behavior: "smooth", block: "nearest"});
+  }
+
+  // Reset all markers
+  markers.forEach((m, idx) => {
+    m.setIcon({
+      path:        google.maps.SymbolPath.CIRCLE,
+      scale:       9,
+      fillColor:   "#1a2a44",
+      fillOpacity: 1,
+      strokeColor: "#e6a817",
+      strokeWeight: 1.5,
+    });
+  });
+
+  // Highlight active marker
+  marker.setIcon({
+    path:        google.maps.SymbolPath.CIRCLE,
+    scale:       13,
+    fillColor:   "#e6a817",
+    fillOpacity: 1,
+    strokeColor: "#ffffff",
+    strokeWeight: 2.5,
+  });
+  marker.setZIndex(999);
+
+  // Pan map
+  map.panTo(place.geometry.location);
+  map.setZoom(15);
+
+  // Info window
+  const name    = place.name || "Unknown";
+  const addr    = place.vicinity || "";
+  const rating  = place.rating;
+  const isOpen  = place.opening_hours?.open_now;
+  const dirUrl  = `https://www.google.com/maps/dir/?api=1&destination_place_id=${place.place_id}`;
+
+  infoWindow.setContent(`
+    <div style="font-family:'DM Sans',sans-serif;padding:4px;min-width:200px;max-width:240px;">
+      <div style="font-weight:700;font-size:14px;color:#1a2a44;margin-bottom:4px;">${escHtml(name)}</div>
+      ${addr ? `<div style="font-size:12px;color:#6b7a99;margin-bottom:6px;line-height:1.4;">${escHtml(addr)}</div>` : ""}
+      ${rating ? `<div style="font-size:12px;color:#c48c10;font-weight:600;margin-bottom:6px;">★ ${rating.toFixed(1)}</div>` : ""}
+      ${isOpen !== undefined ? `<div style="font-size:11.5px;font-weight:600;color:${isOpen ? "#16a34a" : "#dc2626"};margin-bottom:8px;">${isOpen ? "● Open now" : "● Closed"}</div>` : ""}
+      <a href="${dirUrl}" target="_blank" style="display:block;text-align:center;background:linear-gradient(135deg,#e6a817,#c48c10);color:#070c18;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">Get Directions</a>
+    </div>`);
+
+  infoWindow.open(map, marker);
+  activeCardIndex = i;
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────
+function clearMarkers() {
+  markers.forEach(m => m.setMap(null));
+  markers = [];
+  if (infoWindow) infoWindow.close();
+}
+
+function calcDistance(from, to) {
+  const R    = 6371;
+  const lat1 = from.lat() * Math.PI / 180;
+  const lat2 = to.lat()   * Math.PI / 180;
+  const dLat = (to.lat() - from.lat()) * Math.PI / 180;
+  const dLng = (to.lng() - from.lng()) * Math.PI / 180;
+  const a    = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
+  const km   = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return km < 1 ? Math.round(km * 1000) + " m" : km.toFixed(1) + " km";
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function showResultsState(state) {
+  const list = document.getElementById("resultsList");
+  if (state === "loading") {
+    list.innerHTML = `<div class="state-box"><div class="spinner-ring" style="border-top-color:var(--gold);"></div><div class="state-title">Searching nearby lawyers…</div></div>`;
+  }
+}
+
+function showNoResults() {
+  document.getElementById("resultsList").innerHTML = `
+    <div class="no-results">
+      <strong>No lawyers found nearby</strong>
+      Try a different location, expand your search area, or remove the practice filter.
+    </div>`;
+  document.getElementById("mapSpinner").classList.remove("show");
+}
+
+function showError(msg) {
+  document.getElementById("resultsList").innerHTML = `
+    <div class="no-results">
+      <strong>Search Error</strong>${msg}
+    </div>`;
+  document.getElementById("mapSpinner").classList.remove("show");
+  document.getElementById("mapOverlay").classList.add("hidden");
+}
+
+// ── DARK MAP STYLE ────────────────────────────────────────────────────
+const DARK_MAP_STYLE = [
+  {elementType:"geometry",stylers:[{color:"#0c1428"}]},
+  {elementType:"labels.text.stroke",stylers:[{color:"#0c1428"}]},
+  {elementType:"labels.text.fill",stylers:[{color:"#6b7a99"}]},
+  {featureType:"administrative",elementType:"geometry",stylers:[{color:"#1a2a44"}]},
+  {featureType:"administrative.country",elementType:"labels.text.fill",stylers:[{color:"#9da4ba"}]},
+  {featureType:"administrative.land_parcel",stylers:[{visibility:"off"}]},
+  {featureType:"administrative.locality",elementType:"labels.text.fill",stylers:[{color:"#c8d0e0"}]},
+  {featureType:"poi",elementType:"labels.text.fill",stylers:[{color:"#6b7a99"}]},
+  {featureType:"poi.park",elementType:"geometry",stylers:[{color:"#0f1e38"}]},
+  {featureType:"poi.park",elementType:"labels.text.fill",stylers:[{color:"#3d5a7a"}]},
+  {featureType:"road",elementType:"geometry",stylers:[{color:"#1e3254"}]},
+  {featureType:"road",elementType:"geometry.stroke",stylers:[{color:"#162340"}]},
+  {featureType:"road",elementType:"labels.text.fill",stylers:[{color:"#8fa0b8"}]},
+  {featureType:"road.highway",elementType:"geometry",stylers:[{color:"#2a4a7a"}]},
+  {featureType:"road.highway",elementType:"geometry.stroke",stylers:[{color:"#1a3060"}]},
+  {featureType:"road.highway",elementType:"labels.text.fill",stylers:[{color:"#c8d0e0"}]},
+  {featureType:"transit",elementType:"geometry",stylers:[{color:"#0f1e38"}]},
+  {featureType:"transit.station",elementType:"labels.text.fill",stylers:[{color:"#6b7a99"}]},
+  {featureType:"water",elementType:"geometry",stylers:[{color:"#071020"}]},
+  {featureType:"water",elementType:"labels.text.fill",stylers:[{color:"#3a5a8a"}]},
+  {featureType:"water",elementType:"labels.text.stroke",stylers:[{color:"#071020"}]},
+];
+
+// ── BOOT ─────────────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+  if (!LS.getSession()) {
+    document.getElementById("authOverlay").classList.remove("hidden");
+  }
+});
+</script>
+</body>
+</html>

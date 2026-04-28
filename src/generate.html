@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalEase — Document Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #1a2a44;
+  --navy2:  #223558;
+  --gold:   #e6a817;
+  --gold2:  #c48c10;
+  --bg:     #f0f2f7;
+  --card:   #ffffff;
+  --border: #dde2ec;
+  --text:   #1a2236;
+  --muted:  #6b7a99;
+  --error:  #c0392b;
+  --success:#2d6a4f;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────────────── */
+.header {
+  background: linear-gradient(135deg, var(--navy), var(--navy2));
+  height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.16);
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-icon svg { width: 20px; height: 20px; fill: var(--navy); }
+.logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700; color: white;
+}
+.logo-text span { color: var(--gold); }
+.header-links { display: flex; gap: 8px; }
+.header-link {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none; font-size: 13px;
+  padding: 7px 14px; border-radius: 7px;
+  transition: all 0.2s; background: rgba(255,255,255,0.07);
+}
+.header-link:hover { background: rgba(255,255,255,0.14); color: white; }
+.header-link.gold { color: var(--gold); border: 1px solid rgba(230,168,23,0.3); }
+
+/* ── PAGE ────────────────────────────────────────────────────────────── */
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 44px 24px 80px;
+}
+
+.page-hero {
+  text-align: center;
+  margin-bottom: 44px;
+}
+.page-eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(26,42,68,0.07);
+  border: 1px solid rgba(26,42,68,0.12);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 11.5px; font-weight: 600;
+  color: var(--navy); letter-spacing: 0.5px;
+  text-transform: uppercase; margin-bottom: 14px;
+}
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 34px; color: var(--navy);
+  font-weight: 800; margin-bottom: 10px; line-height: 1.15;
+}
+.page-subtitle {
+  font-size: 15px; color: var(--muted);
+  max-width: 500px; margin: 0 auto; line-height: 1.7;
+}
+
+/* ── PRE-FILL BANNER ─────────────────────────────────────────────────── */
+.prefill-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(45,106,79,0.08), rgba(45,106,79,0.04));
+  border: 1px solid rgba(45,106,79,0.25);
+  border-left: 3px solid var(--success);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 28px;
+  font-size: 13px; color: var(--success);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* ── STEP INDICATOR ──────────────────────────────────────────────────── */
+.steps {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0; margin-bottom: 36px;
+}
+.step {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500;
+  color: var(--muted);
+}
+.step.active { color: var(--navy); }
+.step.done   { color: var(--success); }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: var(--border); color: var(--muted);
+  transition: all 0.3s;
+}
+.step.active .step-num { background: var(--navy); color: white; }
+.step.done   .step-num { background: var(--success); color: white; }
+.step-line {
+  width: 60px; height: 2px;
+  background: var(--border); margin: 0 4px;
+  transition: background 0.3s;
+}
+.step-line.done { background: var(--success); }
+
+/* ── DOC TYPE PICKER (STEP 1) ────────────────────────────────────────── */
+#stepPicker { display: block; }
+#stepForm   { display: none; }
+
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.doc-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 22px;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+.doc-card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--navy), var(--navy2));
+  opacity: 0; transition: opacity 0.2s;
+}
+.doc-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(201,168,76,0.18);
+}
+.doc-card:hover::before { opacity: 1; }
+.doc-card.selected {
+  border-color: var(--navy);
+  box-shadow: 0 6px 24px rgba(26,42,68,0.15);
+}
+.doc-card.selected::before { opacity: 1; }
+
+.dc-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(26,42,68,0.07), rgba(26,42,68,0.12));
+}
+.dc-label {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; color: var(--navy);
+  font-weight: 700; margin-bottom: 6px; line-height: 1.3;
+}
+.dc-desc {
+  font-size: 12px; color: var(--muted); line-height: 1.5;
+}
+.dc-badge {
+  display: inline-flex; align-items: center;
+  margin-top: 10px; padding: 3px 9px;
+  background: rgba(26,42,68,0.07);
+  border-radius: 20px; font-size: 10.5px;
+  font-weight: 600; color: var(--navy);
+}
+
+/* ── FORM (STEP 2) ───────────────────────────────────────────────────── */
+.form-card {
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.form-header {
+  background: linear-gradient(135deg, var(--navy), var(--navy2));
+  padding: 22px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.form-header-left { display: flex; align-items: center; gap: 12px; }
+.form-header-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.form-header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; color: white; font-weight: 700;
+}
+.form-header-sub { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+.btn-back-type {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8); font-size: 12px; font-weight: 500;
+  padding: 7px 14px; border-radius: 7px; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: all 0.2s;
+}
+.btn-back-type:hover { background: rgba(255,255,255,0.18); color: white; }
+
+.form-body { padding: 28px 28px 6px; }
+
+/* Group fields by category */
+.field-section {
+  margin-bottom: 24px;
+}
+.field-section-title {
+  font-size: 11px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  margin-bottom: 14px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.field-grid.single { grid-template-columns: 1fr; }
+
+.field-group { display: flex; flex-direction: column; }
+.field-group.span2 { grid-column: span 2; }
+
+.field-group label {
+  font-size: 12px; font-weight: 600; color: var(--navy);
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.req { color: var(--error); }
+
+.field-group input,
+.field-group textarea,
+.field-group select {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--border); border-radius: 9px;
+  font-family: 'Inter', sans-serif; font-size: 13.5px;
+  color: var(--text); background: var(--bg); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.field-group input:focus,
+.field-group textarea:focus,
+.field-group select:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(26,42,68,0.07);
+  background: white;
+}
+.field-group textarea {
+  resize: vertical; min-height: 90px; line-height: 1.6;
+}
+.field-prefilled {
+  border-color: rgba(45,106,79,0.4) !important;
+  background: rgba(45,106,79,0.04) !important;
+}
+
+/* ── FORM FOOTER ─────────────────────────────────────────────────────── */
+.form-footer {
+  padding: 20px 28px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--border);
+  gap: 12px; flex-wrap: wrap;
+}
+.form-footer-note {
+  font-size: 12px; color: var(--muted); line-height: 1.5;
+  max-width: 380px;
+}
+.form-footer-note strong { color: var(--navy); }
+.btn-generate {
+  display: flex; align-items: center; gap: 8px;
+  padding: 13px 28px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--navy), var(--navy2));
+  color: white; font-size: 14px; font-weight: 700;
+  border: none; cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s;
+}
+.btn-generate:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26,42,68,0.3);
+}
+.btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-generate svg { width: 16px; height: 16px; }
+
+/* ── EMAIL MODAL ─────────────────────────────────────────────────────── */
+.email-overlay{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(2,5,12,0.75);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.email-overlay.open{opacity:1;pointer-events:all;}
+.email-card{
+  background:white;border-radius:18px;width:100%;max-width:440px;
+  box-shadow:0 28px 70px rgba(0,0,0,0.4);overflow:hidden;
+  transform:translateY(24px);transition:transform .25s;
+}
+.email-overlay.open .email-card{transform:translateY(0);}
+.email-header{
+  background:linear-gradient(135deg,var(--navy),var(--navy2));
+  padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
+}
+.email-header-left{display:flex;align-items:center;gap:10px;}
+.email-header-icon{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.email-header-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:white;}
+.email-header-sub{font-size:11.5px;color:rgba(255,255,255,0.55);margin-top:1px;}
+.email-close{background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.7);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.email-close:hover{background:rgba(255,255,255,0.2);color:white;}
+.email-body{padding:22px 24px 24px;}
+.email-field{margin-bottom:14px;}
+.email-field label{display:block;font-size:11.5px;font-weight:700;color:var(--navy);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.email-field input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13.5px;color:var(--text);font-family:'Inter',sans-serif;background:#f9fafb;outline:none;transition:border-color .2s;}
+.email-field input:focus{border-color:var(--navy);background:white;}
+.email-field .field-hint{font-size:11px;color:var(--muted);margin-top:4px;}
+.email-send-btn{width:100%;padding:13px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:white;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+.email-send-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 18px rgba(26,42,68,0.3);}
+.email-send-btn:disabled{opacity:.5;cursor:not-allowed;}
+.email-result{display:none;text-align:center;padding:16px 0 4px;}
+.email-result.show{display:block;}
+.email-success-icon{font-size:36px;margin-bottom:8px;}
+.email-success-msg{font-size:14px;font-weight:600;color:#16a34a;margin-bottom:4px;}
+.email-success-sub,.email-error-msg{font-size:12.5px;color:var(--muted);}
+.email-error-msg{color:#c0392b;}
+
+/* ── SPINNER OVERLAY ─────────────────────────────────────────────────── */
+.spinner-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(15,20,38,0.6);
+  backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+.spinner-overlay.show { display: flex; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(255,255,255,0.15);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-label {
+  color: rgba(255,255,255,0.8);
+  font-size: 14px; font-weight: 500;
+}
+
+/* ── SUCCESS TOAST ───────────────────────────────────────────────────── */
+.toast {
+  display: none;
+  position: fixed; bottom: 28px; right: 28px; z-index: 600;
+  background: var(--navy);
+  color: white; padding: 13px 20px;
+  border-radius: 12px; font-size: 13.5px; font-weight: 500;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+  animation: fadeUp 0.3s ease-out;
+  display: flex; align-items: center; gap: 10px;
+}
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(14px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+/* ── LOGIN GATE ──────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10,15,28,0.75);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.overlay.hidden { display: none; }
+.auth-card {
+  background: white; border-radius: 20px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  overflow: hidden; animation: fadeUp 0.3s ease-out;
+}
+.auth-header {
+  background: linear-gradient(135deg, var(--navy), var(--navy2));
+  padding: 26px 26px 20px; text-align: center;
+}
+.auth-logo {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; margin-bottom: 10px;
+}
+.auth-logo-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+}
+.auth-logo-icon svg { width: 21px; height: 21px; fill: var(--navy); }
+.auth-logo-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 21px; font-weight: 800; color: white;
+}
+.auth-logo-text span { color: var(--gold); }
+.auth-tagline { font-size: 12px; color: rgba(255,255,255,0.55); }
+.auth-body { padding: 22px 24px 26px; }
+.field-row { margin-bottom: 14px; }
+.field-row label {
+  display: block; font-size: 11.5px; font-weight: 600;
+  color: var(--navy); margin-bottom: 5px;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+.field-row input {
+  width: 100%; padding: 11px 13px;
+  border: 1.5px solid var(--border); border-radius: 9px;
+  font-size: 13.5px; color: var(--text);
+  font-family: 'Inter', sans-serif; background: var(--bg);
+  outline: none; transition: border-color 0.2s;
+}
+.field-row input:focus { border-color: var(--navy); background: white; }
+.err { font-size: 11.5px; color: var(--error); margin-top: 4px; display: none; }
+.err.show { display: block; }
+.auth-submit {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--navy), var(--navy2));
+  color: white; font-size: 14px; font-weight: 600;
+  border: none; border-radius: 10px; cursor: pointer;
+  font-family: 'Inter', sans-serif; transition: all 0.2s; margin-top: 2px;
+}
+.auth-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(26,42,68,0.3); }
+.auth-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 12px; }
+.auth-note a { color: var(--navy); font-weight: 600; text-decoration: none; }
+
+@media (max-width: 640px) {
+  .doc-grid { grid-template-columns: 1fr; }
+  .field-grid { grid-template-columns: 1fr; }
+  .field-group.span2 { grid-column: span 1; }
+  .page { padding: 20px 14px 60px; }
+  .form-body { padding: 16px 14px 4px; }
+  .form-footer { flex-direction: column; align-items: stretch; gap: 10px; }
+  .form-footer > div { flex-direction: column; }
+  .btn-generate { width: 100%; justify-content: center; }
+  .header { padding: 0 16px; }
+  .page-title { font-size: 24px; }
+  .steps { gap: 0; }
+  .step span:not(.step-num) { display: none; }
+  .form-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .cal-popup { min-width: 260px; left: 50%; transform: translateX(-50%); }
+  .time-picker-popup { left: 50%; transform: translateX(-50%); }
+}
+</style>
+  <script src="config.js"></script>
+</head>
+<body>
+
+<header class="header">
+  <a href="index.html" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.18L4.57 11 12 6.72 19.43 11 12 15.18z"/></svg>
+    </div>
+    <span class="logo-text">Legal<span>Ease</span></span>
+  </a>
+  <div class="header-links">
+    <a href="documents.html" class="header-link gold">← All Tools</a>
+    <a href="index.html" class="header-link">Home</a>
+    <button onclick="doLogoutGen()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:7px 14px;border-radius:7px;font-size:13px;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;" onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.color='#f87171'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='rgba(255,255,255,0.7)'">Sign Out</button>
+  </div>
+</header>
+
+<main class="page">
+
+  <div class="page-hero">
+    <div class="page-eyebrow">⚖ Legal Document Generator</div>
+    <h1 class="page-title">Generate Official Documents</h1>
+    <p class="page-subtitle">Select a document type, fill in the details, and download a professionally formatted Word document — ready to submit.</p>
+  </div>
+
+  <!-- Pre-fill banner (shown when arriving from chat) -->
+  <div class="prefill-banner" id="prefillBanner">
+    ✅ <span id="prefillText">Fields have been pre-filled from your chat conversation. Review and complete before downloading.</span>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="steps">
+    <div class="step active" id="step1el">
+      <span class="step-num" id="snum1">1</span>
+      <span>Choose Type</span>
+    </div>
+    <div class="step-line" id="stepLine"></div>
+    <div class="step" id="step2el">
+      <span class="step-num" id="snum2">2</span>
+      <span>Fill Details</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Doc type picker -->
+  <div id="stepPicker">
+    <div class="doc-grid" id="docGrid">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+
+  <!-- Step 2: Form -->
+  <div id="stepForm">
+    <div class="form-card">
+      <div class="form-header">
+        <div class="form-header-left">
+          <div class="form-header-icon" id="formIcon">📄</div>
+          <div>
+            <div class="form-header-title" id="formTitle">Document</div>
+            <div class="form-header-sub" id="formSub"></div>
+          </div>
+        </div>
+        <button class="btn-back-type" onclick="backToPicker()">← Change Type</button>
+      </div>
+      <div class="form-body" id="formBody"></div>
+      <div class="form-footer">
+        <div class="form-footer-note">
+          <strong>Download or send</strong> — get the .docx file directly, or deliver it to the recipient by email.
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-generate" id="genBtn" onclick="generateDoc()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download
+          </button>
+          <button class="btn-generate" id="emailBtn" onclick="openEmailModal()"
+                  style="background:linear-gradient(135deg,#1a7a4a,#15803d);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Send by Email
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Spinner overlay -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner"></div>
+  <div class="spinner-label" id="spinnerLabel">Preparing your document…</div>
+</div>
+
+<!-- Success toast -->
+<div class="toast" id="toast" style="display:none;">
+  ✅ Document downloaded successfully!
+</div>
+
+<!-- Email modal -->
+<div class="email-overlay" id="emailOverlay">
+  <div class="email-card">
+    <div class="email-header">
+      <div class="email-header-left">
+        <div class="email-header-icon">✉️</div>
+        <div>
+          <div class="email-header-title">Send by Email</div>
+          <div class="email-header-sub">Deliver this document directly to recipient</div>
+        </div>
+      </div>
+      <button class="email-close" onclick="closeEmailModal()">✕</button>
+    </div>
+    <div class="email-body">
+      <div id="emailForm">
+        <div class="email-field">
+          <label>Recipient Email Address</label>
+          <input type="email" id="recipEmail" placeholder="recipient@example.com" autocomplete="email">
+          <div class="field-hint">The document will be sent as an attachment to this address.</div>
+        </div>
+        <div class="email-field">
+          <label>Recipient Name (optional)</label>
+          <input type="text" id="recipName" placeholder="e.g. Rahul Sharma">
+        </div>
+        <div class="email-field">
+          <label>Your Name (Sender)</label>
+          <input type="text" id="senderName" placeholder="e.g. Priya Nair">
+          <div class="field-hint">Shown in the email body as the document sender.</div>
+        </div>
+        <div id="emailErr" style="font-size:12.5px;color:#c0392b;margin-bottom:10px;display:none;"></div>
+        <button class="email-send-btn" id="emailSendBtn" onclick="sendByEmail()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send Document
+        </button>
+      </div>
+      <div class="email-result" id="emailResult">
+        <div class="email-success-icon" id="emailResultIcon">✅</div>
+        <div class="email-success-msg" id="emailResultTitle">Sent successfully!</div>
+        <div class="email-success-sub" id="emailResultSub"></div>
+        <button onclick="closeEmailModal()" style="margin-top:16px;padding:10px 24px;border-radius:9px;background:#f0f4f8;color:var(--navy);font-size:13.5px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Logout confirm modal -->
+<div style="position:fixed;inset:0;z-index:2000;background:rgba(2,5,12,0.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s;" id="logoutModal">
+  <div style="background:#fff;border-radius:18px;max-width:340px;width:100%;box-shadow:0 28px 70px rgba(0,0,0,0.5);padding:28px 24px 22px;">
+    <div style="width:52px;height:52px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </div>
+    <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#1a2a44;text-align:center;margin-bottom:8px;">Sign Out?</div>
+    <div style="font-size:13px;color:#6b7a99;text-align:center;line-height:1.6;margin-bottom:20px;">You will be redirected to the homepage.</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('logoutModal').style.opacity='0';document.getElementById('logoutModal').style.pointerEvents='none';" style="flex:1;padding:11px;border-radius:9px;font-size:13px;font-weight:600;background:#f0f4f8;color:#1a2a44;border:none;cursor:pointer;font-family:'Inter',sans-serif;">Cancel</button>
+      <button onclick="localStorage.removeItem('le_session');window.location.href='index.html';" style="flex:1;padding:11px;border-radius:9px;font-size:13px;font-weight:700;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;font-family:'Inter',sans-serif;">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<!-- Login gate overlay -->
+<div class="overlay hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">
+        <div class="auth-logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 12.18L4.57 11 12 6.72 19.43 11 12 15.18z"/></svg>
+        </div>
+        <span class="auth-logo-text">Legal<span>Ease</span></span>
+      </div>
+      <div class="auth-tagline">Sign in to generate documents</div>
+    </div>
+    <div class="auth-body">
+      <div class="field-row">
+        <label>Email Address</label>
+        <input type="email" id="lgEmail" placeholder="you@email.com">
+        <div class="err" id="lgEmailErr"></div>
+      </div>
+      <div class="field-row">
+        <label>Password</label>
+        <input type="password" id="lgPass" placeholder="Your password">
+        <div class="err" id="lgPassErr"></div>
+      </div>
+      <button class="auth-submit" onclick="doLogin()">Sign In →</button>
+      <div class="auth-note">
+        Don't have an account?
+        <a href="index.html">Create one on the homepage</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = window.LEGALEASE_API || "http://127.0.0.1:8000";
+
+function doLogoutGen() {
+  const m = document.getElementById('logoutModal');
+  m.style.opacity='1'; m.style.pointerEvents='all';
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────
+const LS = {
+  getSession: () => JSON.parse(localStorage.getItem("le_session") || "null"),
+  getUsers:   () => JSON.parse(localStorage.getItem("le_users")   || "{}"),
+};
+
+function doLogin() {
+  const email = document.getElementById("lgEmail").value.trim().toLowerCase();
+  const pass  = document.getElementById("lgPass").value;
+  const users = LS.getUsers();
+  const emailErr = document.getElementById("lgEmailErr");
+  const passErr  = document.getElementById("lgPassErr");
+  emailErr.classList.remove("show"); passErr.classList.remove("show");
+
+  if (!email) { emailErr.textContent = "Email is required."; emailErr.classList.add("show"); return; }
+  if (!users[email]) { emailErr.textContent = "No account found."; emailErr.classList.add("show"); return; }
+  if (users[email].password !== btoa(pass)) { passErr.textContent = "Incorrect password."; passErr.classList.add("show"); return; }
+
+  localStorage.setItem("le_session", JSON.stringify({
+    email, name: users[email].name,
+    profession: users[email].profession || "",
+  }));
+  document.getElementById("authOverlay").classList.add("hidden");
+  init();
+}
+
+// ── Doc type config ──────────────────────────────────────────────────────
+const DOC_ICONS = {
+  complaint_letter:     "📜",
+  legal_notice:         "⚡",
+  cybercrime_complaint: "🛡",
+};
+
+// Group fields for a cleaner form layout
+const FIELD_GROUPS = {
+  complaint_letter: [
+    { title: "Your Details", names: ["complainant_name","complainant_age","complainant_gender","complainant_phone","complainant_address"] },
+    { title: "Incident Details", names: ["incident_date","incident_time","place_of_incident","offence_type","incident_description"] },
+    { title: "Address To", names: ["addressee_type","police_station","court_name","district"] },
+    { title: "Accused & Witnesses", names: ["accused_name","accused_address","witnesses"] },
+    { title: "Other", names: ["relief_sought","date"] },
+  ],
+  legal_notice: [
+    { title: "Sender Details", names: ["sender_name","sender_address"] },
+    { title: "Recipient Details", names: ["recipient_name","recipient_address"] },
+    { title: "Notice Details", names: ["subject","grievance_description","relief_demanded","reply_days","legal_basis"] },
+    { title: "Advocate Details (Optional)", names: ["advocate_name","advocate_address","advocate_enrolment","date"] },
+  ],
+  cybercrime_complaint: [
+    { title: "Your Details", names: ["complainant_name","complainant_age","complainant_gender","complainant_phone","complainant_email","complainant_address"] },
+    { title: "Incident Details", names: ["crime_type","platform","incident_date","amount_lost","incident_description"] },
+    { title: "Accused & Evidence", names: ["accused_details","evidence_description"] },
+    { title: "Location", names: ["district","state","date"] },
+  ],
+};
+
+let docTypes     = {};
+let selectedType = null;
+let prefill      = {};
+
+// ── Init ─────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const res  = await fetch(`${API}/doc_types`);
+    docTypes   = await res.json();
+    buildPicker();
+
+    // Check for pre-fill from chat
+    const stored = localStorage.getItem("le_doc_prefill");
+    if (stored) {
+      prefill = JSON.parse(stored);
+      localStorage.removeItem("le_doc_prefill");
+      const autoType = prefill._doc_type;
+      delete prefill._doc_type;
+
+      if (autoType && docTypes[autoType]) {
+        const hasPrefill = Object.keys(prefill).length > 0;
+        if (hasPrefill) {
+          document.getElementById("prefillBanner").style.display = "flex";
+          document.getElementById("prefillText").textContent =
+            `${Object.keys(prefill).length} fields have been pre-filled from your chat conversation. Review and complete before downloading.`;
+        }
+        selectType(autoType);
+      }
+    }
+  } catch {
+    document.getElementById("docGrid").innerHTML =
+      `<div style="grid-column:span 3;text-align:center;padding:40px;color:var(--muted);">
+        ⚠ Could not connect to the server. Make sure app.py is running.
+       </div>`;
+  }
+}
+
+function buildPicker() {
+  const grid = document.getElementById("docGrid");
+  grid.innerHTML = "";
+  Object.entries(docTypes).forEach(([key, cfg]) => {
+    const card = document.createElement("div");
+    card.className = "doc-card";
+    card.innerHTML = `
+      <div class="dc-icon">${DOC_ICONS[key] || "📄"}</div>
+      <div class="dc-label">${cfg.label}</div>
+      <div class="dc-desc">${cfg.description}</div>
+      <div class="dc-badge">Click to select →</div>
+    `;
+    card.onclick = () => selectType(key);
+    grid.appendChild(card);
+  });
+}
+
+function selectType(type) {
+  selectedType = type;
+  const cfg    = docTypes[type];
+
+  // Update step UI
+  document.getElementById("step1el").classList.remove("active");
+  document.getElementById("step1el").classList.add("done");
+  document.getElementById("snum1").textContent = "✓";
+  document.getElementById("step2el").classList.add("active");
+  document.getElementById("stepLine").classList.add("done");
+
+  document.getElementById("formIcon").textContent  = DOC_ICONS[type] || "📄";
+  document.getElementById("formTitle").textContent = cfg.label;
+  document.getElementById("formSub").textContent   = cfg.description;
+
+  buildForm(type, cfg.fields);
+
+  document.getElementById("stepPicker").style.display = "none";
+  document.getElementById("stepForm").style.display   = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function backToPicker() {
+  selectedType = null;
+  document.getElementById("stepPicker").style.display = "block";
+  document.getElementById("stepForm").style.display   = "none";
+  document.getElementById("step1el").classList.add("active");
+  document.getElementById("step1el").classList.remove("done");
+  document.getElementById("snum1").textContent = "1";
+  document.getElementById("step2el").classList.remove("active");
+  document.getElementById("stepLine").classList.remove("done");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function buildForm(type, fields) {
+  const body = document.getElementById("formBody");
+  body.innerHTML = "";
+
+  const fieldMap = {};
+  fields.forEach(f => { fieldMap[f.name] = f; });
+
+  const groups = FIELD_GROUPS[type] || [{ title: "Details", names: fields.map(f => f.name) }];
+
+  groups.forEach(group => {
+    const groupFields = group.names.map(n => fieldMap[n]).filter(Boolean);
+    if (!groupFields.length) return;
+
+    const section = document.createElement("div");
+    section.className = "field-section";
+
+    const title = document.createElement("div");
+    title.className = "field-section-title";
+    title.textContent = group.title;
+    section.appendChild(title);
+
+    const grid = document.createElement("div");
+    grid.className = "field-grid";
+    section.appendChild(grid);
+
+    groupFields.forEach(f => {
+      const fname = f.name.toLowerCase();
+
+      // ── GENDER FIELD ──────────────────────────────────────────
+      if (fname.includes("gender")) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field-group";
+
+        const lbl = document.createElement("label");
+        lbl.setAttribute("for", "f_" + f.name);
+        lbl.innerHTML = f.label + (f.required ? ' <span class="req">*</span>' : "");
+        wrapper.appendChild(lbl);
+
+        const sel = document.createElement("select");
+        sel.id = "f_" + f.name; sel.name = f.name;
+        if (f.required) sel.setAttribute("data-required","1");
+        ["— Select —","Male","Female","Transgender","Other"].forEach((opt, i) => {
+          const o = document.createElement("option");
+          o.value = i === 0 ? "" : opt; o.textContent = opt;
+          sel.appendChild(o);
+        });
+        if (prefill[f.name]) sel.value = prefill[f.name];
+        wrapper.appendChild(sel);
+
+        // "Other" text input (hidden by default)
+        const otherInput = document.createElement("input");
+        otherInput.type = "text"; otherInput.placeholder = "Please specify…";
+        otherInput.id   = "f_" + f.name + "_other";
+        otherInput.name = f.name + "_other";
+        otherInput.style.cssText = "display:none;margin-top:8px;";
+        wrapper.appendChild(otherInput);
+
+        sel.addEventListener("change", () => {
+          const show = sel.value === "Other";
+          otherInput.style.display = show ? "block" : "none";
+          if (!show) otherInput.value = "";
+        });
+
+        grid.appendChild(wrapper);
+        return;
+      }
+
+      // ── DATE FIELD ────────────────────────────────────────────
+      if (fname.includes("date") && !fname.includes("update") && !fname.includes("candidate")) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field-group";
+
+        const lbl = document.createElement("label");
+        lbl.setAttribute("for", "f_" + f.name);
+        lbl.innerHTML = f.label + (f.required ? ' <span class="req">*</span>' : "");
+        wrapper.appendChild(lbl);
+
+        const dateWrap = document.createElement("div");
+        dateWrap.className = "date-picker-wrap";
+        dateWrap.style.cssText = "position:relative;";
+
+        const dateInput = document.createElement("input");
+        dateInput.type = "text"; dateInput.readOnly = true;
+        dateInput.id = "f_" + f.name; dateInput.name = f.name;
+        dateInput.placeholder = "DD/MM/YYYY — click to select";
+        dateInput.style.cssText = "cursor:pointer;caret-color:transparent;";
+        dateInput.className = "date-picker-input";
+        if (f.required) dateInput.setAttribute("data-required","1");
+        if (prefill[f.name]) dateInput.value = prefill[f.name];
+
+        const calIcon = document.createElement("span");
+        calIcon.style.cssText = "position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;";
+        calIcon.textContent = "📅";
+
+        dateWrap.appendChild(dateInput);
+        dateWrap.appendChild(calIcon);
+        wrapper.appendChild(dateWrap);
+
+        dateInput.addEventListener("click", () => openCalendar(dateInput));
+
+        grid.appendChild(wrapper);
+        return;
+      }
+
+      // ── TIME FIELD ────────────────────────────────────────────
+      if (fname.includes("time") && !fname.includes("datetime") && !fname.includes("realtime")) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field-group";
+
+        const lbl = document.createElement("label");
+        lbl.setAttribute("for", "f_" + f.name);
+        lbl.innerHTML = f.label + (f.required ? ' <span class="req">*</span>' : "");
+        wrapper.appendChild(lbl);
+
+        const timeWrap = document.createElement("div");
+        timeWrap.style.cssText = "position:relative;";
+
+        const timeInput = document.createElement("input");
+        timeInput.type = "text"; timeInput.readOnly = true;
+        timeInput.id = "f_" + f.name; timeInput.name = f.name;
+        timeInput.placeholder = "HH:MM AM/PM — click to select";
+        timeInput.style.cssText = "cursor:pointer;caret-color:transparent;";
+        if (f.required) timeInput.setAttribute("data-required","1");
+        if (prefill[f.name]) timeInput.value = prefill[f.name];
+
+        const clockIcon = document.createElement("span");
+        clockIcon.style.cssText = "position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;";
+        clockIcon.textContent = "🕐";
+
+        timeWrap.appendChild(timeInput);
+        timeWrap.appendChild(clockIcon);
+        wrapper.appendChild(timeWrap);
+
+        timeInput.addEventListener("click", () => openTimePicker(timeInput));
+
+        grid.appendChild(wrapper);
+        return;
+      }
+
+      // ── DEFAULT FIELD ─────────────────────────────────────────
+      const group_el = document.createElement("div");
+      group_el.className = "field-group" + (f.multiline ? " span2" : "");
+
+      const label = document.createElement("label");
+      label.setAttribute("for", "f_" + f.name);
+      label.innerHTML = f.label + (f.required ? ' <span class="req">*</span>' : "");
+      group_el.appendChild(label);
+
+      let input;
+      if (f.type === "select") {
+        input = document.createElement("select");
+        const placeholder = document.createElement("option");
+        placeholder.value = ""; placeholder.textContent = "— Select —";
+        input.appendChild(placeholder);
+        (f.options || []).forEach(opt => {
+          const o = document.createElement("option");
+          o.value = opt; o.textContent = opt;
+          input.appendChild(o);
+        });
+      } else if (f.multiline) {
+        input = document.createElement("textarea");
+        input.rows = 4;
+      } else {
+        input = document.createElement("input");
+        input.type = "text";
+      }
+
+      input.id   = "f_" + f.name;
+      input.name = f.name;
+      if (f.required) input.setAttribute("data-required","1");
+      if (prefill[f.name]) { input.value = prefill[f.name]; input.classList.add("field-prefilled"); }
+
+      group_el.appendChild(input);
+      grid.appendChild(group_el);
+    });
+
+    body.appendChild(section);
+  });
+
+  // Close popups when clicking outside — handled globally by shared popup system
+}
+
+// ── CALENDAR POPUP ────────────────────────────────────────────────
+// ── CALENDAR SYSTEM ───────────────────────────────────────────────
+// Uses a single shared popup element to avoid stale reference bugs.
+// Clicking a date input opens/closes the calendar.
+// Selecting a date closes the popup.
+// Clicking the month/year header switches to year picker.
+// Popup flips above the input if there's not enough space below.
+
+let _calPop     = null;   // shared calendar popup DOM node
+let _calInput   = null;   // which input is currently bound
+let _calYear    = null;   // current view year
+let _calMonth   = null;   // current view month (0-11)
+let _calMode    = "days"; // "days" | "years"
+
+function _ensureCalPop() {
+  if (_calPop) return;
+  _calPop = document.createElement("div");
+  _calPop.id = "sharedCalPop";
+  _calPop.style.cssText = `
+    display:none;position:fixed;z-index:9000;
+    background:white;border:1.5px solid #dde2ec;border-radius:14px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.16);padding:16px;width:296px;
+    font-family:'Inter',sans-serif;user-select:none;
+  `;
+  document.body.appendChild(_calPop);
+
+  // Close when clicking outside
+  document.addEventListener("mousedown", (e) => {
+    if (_calPop.style.display === "block" &&
+        !_calPop.contains(e.target) &&
+        e.target !== _calInput) {
+      _calPop.style.display = "none";
+    }
+  }, true);
+}
+
+function _positionCalPop() {
+  const rect = _calInput.getBoundingClientRect();
+  const popH = 340; // estimated popup height
+  const spaceBelow = window.innerHeight - rect.bottom - 8;
+  const spaceAbove = rect.top - 8;
+
+  _calPop.style.left = Math.min(rect.left, window.innerWidth - 310) + "px";
+
+  if (spaceBelow >= popH || spaceBelow >= spaceAbove) {
+    // Show below input
+    _calPop.style.top    = (rect.bottom + 6) + "px";
+    _calPop.style.bottom = "auto";
+  } else {
+    // Flip above input
+    _calPop.style.bottom = (window.innerHeight - rect.top + 6) + "px";
+    _calPop.style.top    = "auto";
+  }
+}
+
+function _renderCal() {
+  _calPop.innerHTML = "";
+
+  if (_calMode === "years") {
+    _renderYearPicker();
+    return;
+  }
+
+  const today      = new Date();
+  const months     = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const monthShort = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  // ── Header ──
+  const hdr = document.createElement("div");
+  hdr.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;";
+
+  const prev = document.createElement("button");
+  prev.type = "button"; prev.textContent = "‹";
+  prev.style.cssText = "background:#f0f4f8;border:none;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:18px;color:#1a2a44;display:flex;align-items:center;justify-content:center;flex-shrink:0;";
+  prev.onclick = e => {
+    e.stopPropagation();
+    _calMonth--;
+    if (_calMonth < 0) { _calMonth = 11; _calYear--; }
+    _renderCal();
+  };
+
+  const hdrLabel = document.createElement("button");
+  hdrLabel.type = "button";
+  hdrLabel.style.cssText = "background:none;border:none;cursor:pointer;font-size:14px;font-weight:700;color:#1a2a44;padding:4px 10px;border-radius:7px;transition:background .15s;";
+  hdrLabel.textContent = months[_calMonth] + " " + _calYear;
+  hdrLabel.title = "Click to select year";
+  hdrLabel.onmouseover = () => { hdrLabel.style.background = "#f0f4f8"; };
+  hdrLabel.onmouseout  = () => { hdrLabel.style.background = "none"; };
+  hdrLabel.onclick = e => { e.stopPropagation(); _calMode = "years"; _renderCal(); };
+
+  const next = document.createElement("button");
+  next.type = "button"; next.textContent = "›";
+  next.style.cssText = prev.style.cssText;
+  next.onclick = e => {
+    e.stopPropagation();
+    _calMonth++;
+    if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+    _renderCal();
+  };
+
+  hdr.appendChild(prev); hdr.appendChild(hdrLabel); hdr.appendChild(next);
+  _calPop.appendChild(hdr);
+
+  // ── Day labels ──
+  const dayRow = document.createElement("div");
+  dayRow.style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;";
+  ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(d => {
+    const c = document.createElement("div");
+    c.style.cssText = "text-align:center;font-size:10.5px;font-weight:700;color:#9aabb8;padding:3px 0;";
+    c.textContent = d;
+    dayRow.appendChild(c);
+  });
+  _calPop.appendChild(dayRow);
+
+  // ── Day grid ──
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(7,1fr);gap:3px;";
+
+  const firstDay    = new Date(_calYear, _calMonth, 1).getDay();
+  const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
+  const currentVal  = _calInput ? _calInput.value : "";
+
+  for (let i = 0; i < firstDay; i++) grid.appendChild(document.createElement("div"));
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dd       = String(d).padStart(2,"0");
+    const mm       = String(_calMonth + 1).padStart(2,"0");
+    const dateStr  = `${dd}/${mm}/${_calYear}`;
+    const isToday  = d === today.getDate() && _calMonth === today.getMonth() && _calYear === today.getFullYear();
+    const isSel    = currentVal === dateStr;
+
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.textContent = d;
+    cell.style.cssText = `
+      background:${isSel ? "#1a2a44" : "transparent"};
+      color:${isSel ? "white" : "#1a2a44"};
+      border:${isToday && !isSel ? "1.5px solid #1a2a44" : "1.5px solid transparent"};
+      border-radius:7px;padding:6px 2px;font-size:12.5px;
+      font-weight:${isSel ? "700" : "400"};cursor:pointer;text-align:center;
+      transition:background .1s;
+    `;
+    cell.onmouseover = () => { if (!isSel) cell.style.background = "#f0f4f8"; };
+    cell.onmouseout  = () => { if (!isSel) cell.style.background = "transparent"; };
+    cell.onclick = e => {
+      e.stopPropagation();
+      if (_calInput) {
+        _calInput.value = dateStr;
+        _calInput.dispatchEvent(new Event("input"));
+        _calInput.style.borderColor = "";
+      }
+      _calPop.style.display = "none";
+    };
+    grid.appendChild(cell);
+  }
+  _calPop.appendChild(grid);
+
+  // ── Footer ──
+  const footer = document.createElement("div");
+  footer.style.cssText = "display:flex;gap:8px;margin-top:12px;";
+
+  const todayBtn = document.createElement("button");
+  todayBtn.type = "button"; todayBtn.textContent = "Today";
+  todayBtn.style.cssText = "flex:1;padding:8px;border-radius:8px;background:#f0f4f8;border:1px solid #dde2ec;font-size:12px;font-weight:600;color:#1a2a44;cursor:pointer;font-family:'Inter',sans-serif;";
+  todayBtn.onclick = e => {
+    e.stopPropagation();
+    const dd = String(today.getDate()).padStart(2,"0");
+    const mm = String(today.getMonth()+1).padStart(2,"0");
+    if (_calInput) {
+      _calInput.value = `${dd}/${mm}/${today.getFullYear()}`;
+      _calInput.dispatchEvent(new Event("input"));
+      _calInput.style.borderColor = "";
+    }
+    _calPop.style.display = "none";
+  };
+
+  const clearBtn = document.createElement("button");
+  clearBtn.type = "button"; clearBtn.textContent = "Clear";
+  clearBtn.style.cssText = "padding:8px 14px;border-radius:8px;background:transparent;border:1px solid #dde2ec;font-size:12px;font-weight:600;color:#9aabb8;cursor:pointer;font-family:'Inter',sans-serif;";
+  clearBtn.onclick = e => {
+    e.stopPropagation();
+    if (_calInput) { _calInput.value = ""; _calInput.dispatchEvent(new Event("input")); }
+    _calPop.style.display = "none";
+  };
+
+  footer.appendChild(todayBtn); footer.appendChild(clearBtn);
+  _calPop.appendChild(footer);
+}
+
+function _renderYearPicker() {
+  _calPop.innerHTML = "";
+
+  const thisYear = new Date().getFullYear();
+  const startY   = _calYear - 6;
+
+  // Header
+  const hdr = document.createElement("div");
+  hdr.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;";
+
+  const prev = document.createElement("button");
+  prev.type = "button"; prev.textContent = "‹";
+  prev.style.cssText = "background:#f0f4f8;border:none;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:18px;color:#1a2a44;display:flex;align-items:center;justify-content:center;";
+  prev.onclick = e => { e.stopPropagation(); _calYear -= 12; _renderCal(); };
+
+  const lbl = document.createElement("div");
+  lbl.style.cssText = "font-size:13.5px;font-weight:700;color:#1a2a44;";
+  lbl.textContent   = `${startY} – ${startY + 11}`;
+
+  const next = document.createElement("button");
+  next.type = "button"; next.textContent = "›";
+  next.style.cssText = prev.style.cssText;
+  next.onclick = e => { e.stopPropagation(); _calYear += 12; _renderCal(); };
+
+  hdr.appendChild(prev); hdr.appendChild(lbl); hdr.appendChild(next);
+  _calPop.appendChild(hdr);
+
+  // Year grid — 3 columns × 4 rows = 12 years
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(3,1fr);gap:6px;";
+
+  for (let y = startY; y < startY + 12; y++) {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.textContent = y;
+    const isCurr = (y === _calYear);
+    const isNow  = (y === thisYear);
+    btn.style.cssText = `
+      padding:9px 4px;border-radius:8px;font-size:13px;font-weight:${isCurr?"700":"400"};
+      background:${isCurr?"#1a2a44":"transparent"};
+      color:${isCurr?"white":isNow?"#e6a817":"#1a2a44"};
+      border:${isNow&&!isCurr?"1.5px solid #e6a817":"1.5px solid transparent"};
+      cursor:pointer;transition:background .1s;
+    `;
+    btn.onmouseover = () => { if (!isCurr) btn.style.background = "#f0f4f8"; };
+    btn.onmouseout  = () => { if (!isCurr) btn.style.background = "transparent"; };
+    btn.onclick = e => {
+      e.stopPropagation();
+      _calYear  = y;
+      _calMode  = "days";
+      _renderCal();
+    };
+    grid.appendChild(btn);
+  }
+  _calPop.appendChild(grid);
+
+  const backBtn = document.createElement("button");
+  backBtn.type = "button"; backBtn.textContent = "← Back to Calendar";
+  backBtn.style.cssText = "margin-top:12px;width:100%;padding:8px;border-radius:8px;background:#f0f4f8;border:1px solid #dde2ec;font-size:12px;font-weight:600;color:#1a2a44;cursor:pointer;font-family:'Inter',sans-serif;";
+  backBtn.onclick = e => { e.stopPropagation(); _calMode = "days"; _renderCal(); };
+  _calPop.appendChild(backBtn);
+}
+
+function openCalendar(input) {
+  _ensureCalPop();
+
+  // If already open for this input → close it
+  if (_calPop.style.display === "block" && _calInput === input) {
+    _calPop.style.display = "none";
+    return;
+  }
+
+  _calInput = input;
+  _calMode  = "days";
+
+  // Parse existing value or default to today
+  const today = new Date();
+  if (input.value && /^\d{2}\/\d{2}\/\d{4}$/.test(input.value)) {
+    const parts = input.value.split("/");
+    _calMonth = parseInt(parts[1]) - 1;
+    _calYear  = parseInt(parts[2]);
+  } else {
+    _calMonth = today.getMonth();
+    _calYear  = today.getFullYear();
+  }
+
+  _renderCal();
+  _positionCalPop();
+  _calPop.style.display = "block";
+}
+
+// ── TIME PICKER SYSTEM ────────────────────────────────────────────
+// Single shared popup — same pattern as calendar.
+
+let _timePop   = null;
+let _timeInput = null;
+let _tHour     = 9;
+let _tMinute   = 0;
+let _tAmpm     = "AM";
+
+function _ensureTimePop() {
+  if (_timePop) return;
+  _timePop = document.createElement("div");
+  _timePop.id = "sharedTimePop";
+  _timePop.style.cssText = `
+    display:none;position:fixed;z-index:9000;
+    background:white;border:1.5px solid #dde2ec;border-radius:14px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.16);padding:18px 20px;width:230px;
+    font-family:'Inter',sans-serif;user-select:none;
+  `;
+  document.body.appendChild(_timePop);
+
+  document.addEventListener("mousedown", e => {
+    if (_timePop.style.display === "block" &&
+        !_timePop.contains(e.target) &&
+        e.target !== _timeInput) {
+      _timePop.style.display = "none";
+    }
+  }, true);
+}
+
+function _positionTimePop() {
+  const rect    = _timeInput.getBoundingClientRect();
+  const popH    = 220;
+  const spaceB  = window.innerHeight - rect.bottom - 8;
+  const spaceA  = rect.top - 8;
+
+  _timePop.style.left = Math.min(rect.left, window.innerWidth - 250) + "px";
+  if (spaceB >= popH || spaceB >= spaceA) {
+    _timePop.style.top    = (rect.bottom + 6) + "px";
+    _timePop.style.bottom = "auto";
+  } else {
+    _timePop.style.bottom = (window.innerHeight - rect.top + 6) + "px";
+    _timePop.style.top    = "auto";
+  }
+}
+
+function _renderTimePop() {
+  _timePop.innerHTML = "";
+
+  const label = document.createElement("div");
+  label.style.cssText = "font-size:10.5px;font-weight:700;color:#9aabb8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;";
+  label.textContent = "Select Time";
+  _timePop.appendChild(label);
+
+  const display = document.createElement("div");
+  display.style.cssText = "text-align:center;font-size:30px;font-weight:800;color:#1a2a44;letter-spacing:3px;margin-bottom:14px;font-variant-numeric:tabular-nums;";
+  display.textContent = `${String(_tHour).padStart(2,"0")}:${String(_tMinute).padStart(2,"0")} ${_tAmpm}`;
+  _timePop.appendChild(display);
+
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;";
+
+  const makeSpinner = (lbl, val, min, max, step, onChange) => {
+    const box = document.createElement("div");
+    box.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:3px;";
+
+    const l = document.createElement("div");
+    l.style.cssText = "font-size:9.5px;color:#9aabb8;font-weight:700;text-transform:uppercase;";
+    l.textContent = lbl;
+
+    const mkArrow = (sym, cb) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = sym;
+      b.style.cssText = "background:#f0f4f8;border:none;border-radius:6px;width:34px;height:24px;cursor:pointer;font-size:11px;color:#1a2a44;";
+      b.onclick = e => { e.stopPropagation(); cb(); _renderTimePop(); };
+      return b;
+    };
+
+    const up   = mkArrow("▲", () => { val = val + step > max ? min : val + step; _tHour = lbl==="Hour" ? val : _tHour; _tMinute = lbl==="Min" ? val : _tMinute; });
+    const down = mkArrow("▼", () => { val = val - step < min ? max : val - step; _tHour = lbl==="Hour" ? val : _tHour; _tMinute = lbl==="Min" ? val : _tMinute; });
+
+    const num = document.createElement("div");
+    num.style.cssText = "font-size:22px;font-weight:800;color:#1a2a44;width:44px;text-align:center;padding:4px 0;background:#f8f9fc;border-radius:8px;";
+    num.textContent = String(val).padStart(2,"0");
+
+    box.appendChild(l); box.appendChild(up); box.appendChild(num); box.appendChild(down);
+    return box;
+  };
+
+  const sep = document.createElement("div");
+  sep.style.cssText = "font-size:26px;font-weight:800;color:#1a2a44;margin-bottom:18px;";
+  sep.textContent = ":";
+
+  const ampmBox = document.createElement("div");
+  ampmBox.style.cssText = "display:flex;flex-direction:column;gap:5px;";
+  ["AM","PM"].forEach(v => {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.textContent = v;
+    const active = (_tAmpm === v);
+    btn.style.cssText = `background:${active?"#1a2a44":"#f0f4f8"};color:${active?"white":"#6b7a99"};border:none;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;`;
+    btn.onclick = e => { e.stopPropagation(); _tAmpm = v; _renderTimePop(); };
+    ampmBox.appendChild(btn);
+  });
+
+  row.appendChild(makeSpinner("Hour", _tHour, 1, 12, 1, v => { _tHour = v; }));
+  row.appendChild(sep);
+  row.appendChild(makeSpinner("Min", _tMinute, 0, 59, 5, v => { _tMinute = v; }));
+  row.appendChild(ampmBox);
+  _timePop.appendChild(row);
+
+  const setBtn = document.createElement("button");
+  setBtn.type = "button"; setBtn.textContent = "Set Time";
+  setBtn.style.cssText = "width:100%;padding:10px;border-radius:9px;background:linear-gradient(135deg,#1a2a44,#223558);color:white;font-size:13.5px;font-weight:700;border:none;cursor:pointer;";
+  setBtn.onclick = e => {
+    e.stopPropagation();
+    if (_timeInput) {
+      _timeInput.value = `${String(_tHour).padStart(2,"0")}:${String(_tMinute).padStart(2,"0")} ${_tAmpm}`;
+      _timeInput.dispatchEvent(new Event("input"));
+      _timeInput.style.borderColor = "";
+    }
+    _timePop.style.display = "none";
+  };
+  _timePop.appendChild(setBtn);
+}
+
+function openTimePicker(input) {
+  _ensureTimePop();
+
+  if (_timePop.style.display === "block" && _timeInput === input) {
+    _timePop.style.display = "none";
+    return;
+  }
+
+  _timeInput = input;
+
+  // Parse existing value
+  if (input.value && /\d{2}:\d{2}/.test(input.value)) {
+    const [h, rest] = input.value.split(":");
+    const [m, ap]   = rest.split(" ");
+    _tHour   = parseInt(h) || 9;
+    _tMinute = parseInt(m) || 0;
+    _tAmpm   = ap || "AM";
+  } else {
+    _tHour = 9; _tMinute = 0; _tAmpm = "AM";
+  }
+
+  _renderTimePop();
+  _positionTimePop();
+  _timePop.style.display = "block";
+}
+
+
+
+function collectFields() {
+  const data = {};
+  document.querySelectorAll("#formBody input, #formBody textarea, #formBody select")
+    .forEach(el => {
+      if (!el.name) return;
+      // Skip "other" sub-inputs — handled below
+      if (el.name.endsWith("_other")) return;
+      let val = el.value.trim();
+      // If gender = "Other", use the text input value instead
+      if (el.name.toLowerCase().includes("gender") && val === "Other") {
+        const otherEl = document.getElementById(el.id + "_other");
+        if (otherEl && otherEl.value.trim()) val = otherEl.value.trim();
+      }
+      data[el.name] = val;
+    });
+  return data;
+}
+
+function validateRequired() {
+  const missing = [];
+  document.querySelectorAll("[data-required]").forEach(el => {
+    if (!el.value.trim()) {
+      el.style.borderColor = "var(--error)";
+      const label = el.previousElementSibling;
+      if (label) missing.push(label.textContent.replace("*","").trim());
+      el.addEventListener("input", () => el.style.borderColor = "", { once: true });
+    }
+  });
+  return missing;
+}
+
+async function generateDoc() {
+  const missing = validateRequired();
+  if (missing.length) {
+    alert(`Please fill required fields:\n• ${missing.join("\n• ")}`);
+    return;
+  }
+
+  const btn = document.getElementById("genBtn");
+  btn.disabled = true;
+
+  const spinner = document.getElementById("spinnerOverlay");
+  document.getElementById("spinnerLabel").textContent = "Generating your document…";
+  spinner.classList.add("show");
+
+  try {
+    const res = await fetch(`${API}/generate`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ doc_type: selectedType, fields: collectFields() }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Generation failed");
+    }
+
+    const blob     = await res.blob();
+    const url      = URL.createObjectURL(blob);
+    const a        = document.createElement("a");
+    const filename = (res.headers.get("Content-Disposition") || "")
+      .match(/filename="(.+)"/)?.[1] || `${selectedType}_document.docx`;
+    a.href     = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Show toast
+    const toast = document.getElementById("toast");
+    toast.style.display = "flex";
+    setTimeout(() => { toast.style.display = "none"; }, 4000);
+
+  } catch (err) {
+    alert("Error: " + err.message);
+  } finally {
+    spinner.classList.remove("show");
+    btn.disabled = false;
+  }
+}
+
+// ── EMAIL MODAL ───────────────────────────────────────────────────
+function openEmailModal() {
+  if (!selectedType) { alert("Please select a document type first."); return; }
+  const missing = validateRequired();
+  if (missing.length) {
+    alert(`Please fill required fields before sending:\n• ${missing.join("\n• ")}`);
+    return;
+  }
+  // Pre-fill sender name from session
+  const sess = LS.getSession();
+  if (sess && sess.name) {
+    document.getElementById("senderName").value = sess.name;
+  }
+  // Pre-fill recipient from form fields if available
+  const recipFields = ["recipient_name","sender_name","complainant_name"];
+  for (const f of recipFields) {
+    const el = document.getElementById("f_" + f);
+    if (el && el.value.trim() && f !== "complainant_name") {
+      document.getElementById("recipName").value = el.value.trim();
+      break;
+    }
+  }
+  const recipAddrFields = ["recipient_address"];
+  // Try to get recipient email from form
+  const recipEmailEl = document.getElementById("f_recipient_email");
+  if (recipEmailEl && recipEmailEl.value.trim()) {
+    document.getElementById("recipEmail").value = recipEmailEl.value.trim();
+  }
+
+  // Reset state
+  document.getElementById("emailForm").style.display   = "block";
+  document.getElementById("emailResult").classList.remove("show");
+  document.getElementById("emailErr").style.display    = "none";
+  document.getElementById("emailSendBtn").disabled     = false;
+
+  document.getElementById("emailOverlay").classList.add("open");
+}
+
+function closeEmailModal() {
+  document.getElementById("emailOverlay").classList.remove("open");
+}
+
+// Close on backdrop click
+document.getElementById("emailOverlay")?.addEventListener("click", e => {
+  if (e.target.id === "emailOverlay") closeEmailModal();
+});
+
+async function sendByEmail() {
+  const recipEmail = document.getElementById("recipEmail").value.trim();
+  const recipName  = document.getElementById("recipName").value.trim();
+  const senderName = document.getElementById("senderName").value.trim();
+  const errEl      = document.getElementById("emailErr");
+
+  // Validate
+  errEl.style.display = "none";
+  if (!recipEmail) {
+    errEl.textContent = "Recipient email address is required.";
+    errEl.style.display = "block";
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipEmail)) {
+    errEl.textContent = "Please enter a valid email address.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  const btn = document.getElementById("emailSendBtn");
+  btn.disabled = true;
+  btn.innerHTML = `<div style="width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;"></div> Sending…`;
+
+  const style = document.createElement("style");
+  style.textContent = "@keyframes spin{to{transform:rotate(360deg)}}";
+  document.head.appendChild(style);
+
+  try {
+    const res = await fetch(`${API}/send_email`, {
+      method:  "POST",
+      headers: {"Content-Type": "application/json"},
+      body:    JSON.stringify({
+        doc_type:        selectedType,
+        fields:          collectFields(),
+        recipient_email: recipEmail,
+        recipient_name:  recipName,
+        sender_name:     senderName,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.detail || "Failed to send email.");
+    }
+
+    // Show success
+    document.getElementById("emailForm").style.display = "none";
+    const result = document.getElementById("emailResult");
+    document.getElementById("emailResultIcon").textContent = "✅";
+    document.getElementById("emailResultTitle").textContent = "Document sent successfully!";
+    document.getElementById("emailResultSub").textContent =
+      `Delivered to ${recipEmail}. The recipient will receive the document as an email attachment.`;
+    document.getElementById("emailResultSub").style.color = "var(--muted)";
+    result.classList.add("show");
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Send Document`;
+
+    if (err.message.includes("not configured")) {
+      errEl.textContent = "Email service not configured. Add RESEND_API_KEY to your .env file.";
+    } else {
+      errEl.textContent = "Error: " + err.message;
+    }
+    errEl.style.display = "block";
+  }
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────
+window.onload = () => {
+  const sess = LS.getSession();
+  if (!sess) {
+    document.getElementById("authOverlay").classList.remove("hidden");
+    return;
+  }
+  document.getElementById("authOverlay").classList.add("hidden");
+  init();
+};
+</script>
+</body>
+</html>
