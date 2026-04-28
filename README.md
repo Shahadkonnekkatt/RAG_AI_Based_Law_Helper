@@ -116,6 +116,7 @@ etc..
 | [Ollama](https://ollama.com) | Latest | Local LLM serving |
 | Git | Any | Clone repo |
 
+<br><br><br>
 ### Step 1 — Clone the Repository
 
 ```bash
@@ -123,12 +124,42 @@ git clone https://github.com/Shahadkonnekkatt/RAG_AI_Based_Law_Helper.git
 cd legalease
 ```
 
+<br><br><br>
 ### Step 2 — Install Python Dependencies
+##### Option A — With Virtual Environment (Recommended)
+
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate it
+# On Windows:
+venv\Scripts\activate
+# On Mac/Linux:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+> Every time you open a new terminal to run the project, activate the venv first with `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (Mac/Linux). You will see `(venv)` appear in your terminal prompt when it is active.
+
+##### Option B — Without Virtual Environment
 
 ```bash
 pip install -r requirements.txt
 ```
 
+> This installs packages globally. Works fine but may cause conflicts with other Python projects on your machine.
+
+### ⚠️ CAUTION
+The faiss-cpu package sometimes fails to install on certain systems. If someone gets an error on pip install -r requirements.txt, run:
+
+```bash
+pip install faiss-cpu --no-cache-dir
+```
+
+<br><br><br>
 ### Step 3 — Download the LLM
 
 ```bash
@@ -138,6 +169,7 @@ ollama pull llama3:8b
 
 > This downloads ~4.7 GB. Only needed once.
 
+<br><br><br>
 ### Step 4 — Build the Knowledge Base
 Create a data directory and store the required legal Act PDFs within it. Ensure the files are preprocessed to include only section-wise content (e.g., “Section X: …”), removing non-essential elements like headers, footers, and supplementary material.
 ```
@@ -159,6 +191,7 @@ python ingest.py
 
 > This creates `faiss_index.bin`, `bm25_corpus.pkl`, and `chunks.pkl` in the project folder. These are not included in the repo due to file size.
 
+<br><br><br>
 ### Step 5 — Configure Environment
 
 Edit `.env`:
@@ -179,6 +212,7 @@ WHATSAPP_PHONE_NUMBER_ID=your_phone_number_id
 
 > For testing without email/WhatsApp, leave those fields as-is. Only `RESEND_API_KEY` is needed for the email feature.
 
+<br><br><br>
 ### Step 6 — Start the Application
 
 ```bash
@@ -189,7 +223,12 @@ ollama serve
 # The command "uvicorn app:app --reload --port 8000" is integrated at last lines of app.py, therefore we can run app.py to start the backend.
 python app.py
 ```
+<br>
 
+> **Note:** The first time you run `app.py`, it will automatically download the 
+> BAAI/bge-base-en-v1.5 embedding model (~500MB). This is a one-time download.
+
+<br><br><br>
 ### Step 7 — Open in Browser
 
 Open index.html file directly from the folder(Recommended), or serve them with Python's built-in server:
